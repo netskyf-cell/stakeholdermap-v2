@@ -5,43 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StakeholderMap — AI Stakeholder Analysis</title>
 <meta name="description" content="AI-powered stakeholder analysis, visual mapping, and communication planning">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='35' height='35' fill='%230A0A0A'/><rect x='55' y='10' width='35' height='35' fill='%230A0A0A' opacity='.5'/><rect x='10' y='55' width='35' height='35' fill='%230A0A0A' opacity='.3'/><rect x='55' y='55' width='35' height='35' fill='%230A0A0A' opacity='.7'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
 :root {
-  --bg:#0B0F1A; --surface:#131825; --surface2:#1A2035;
-  --card:#161C2E; --border:#232B42; --border2:#2A3455;
-  --accent:#4F8BFF; --accent-g:rgba(79,139,255,0.15);
-  --warm:#FF6B4A; --warm-g:rgba(255,107,74,0.15);
-  --green:#34D399; --green-g:rgba(52,211,153,0.12);
-  --yellow:#FBBF24; --yellow-g:rgba(251,191,36,0.12);
-  --purple:#A78BFA; --purple-g:rgba(167,139,250,0.12);
-  --text:#E8ECF4; --muted:#8892A8; --dim:#5A6480;
+  --bg:#F2F2EE; --surface:#E9E7DF; --surface2:#DDDBD3;
+  --ink:#0A0A0A; --ink2:#4A4A46; --muted:#7A7A75; --hairline:#C7C7C0;
+  --signal:#D6321F; --signal-g:rgba(214,50,31,0.08);
+  --moss:#5C7A5E; --moss-g:rgba(92,122,94,0.10);
+  --amber:#C87C2A; --amber-g:rgba(200,124,42,0.10);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-a{color:var(--accent);text-decoration:none}
+body{font-family:'Inter Tight',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:var(--ink);text-decoration:none}
 a:hover{text-decoration:underline}
-.btn{padding:10px 20px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-p{background:var(--accent);color:#fff;box-shadow:0 2px 12px var(--accent-g)}
-.btn-p:hover:not(:disabled){transform:translateY(-1px)}
-.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
-.btn-w{background:var(--warm);color:#fff}
-.btn-g{background:transparent;color:var(--muted);border:none}
-.btn-sm{padding:6px 14px;font-size:13px}
-.btn-block{width:100%}
-.inp{padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit;outline:none;width:100%}
-.inp:focus{border-color:var(--accent)}
-.card{background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--border)}
-.badge{display:inline-flex;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600}
-.label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:block}
-.error-msg{padding:8px 12px;border-radius:8px;background:var(--warm-g);color:var(--warm);font-size:13px;margin-top:8px}
+.btn{padding:8px 16px;border:1px solid var(--ink);background:transparent;color:var(--ink);font-size:13px;font-weight:500;font-family:'Inter Tight',sans-serif;cursor:pointer;letter-spacing:-0.01em;transition:background .12s,color .12s;border-radius:0;display:inline-flex;align-items:center;gap:6px}
+.btn:hover:not(:disabled){background:var(--ink);color:var(--bg)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-fill{background:var(--ink);color:var(--bg)}
+.btn-fill:hover:not(:disabled){background:var(--ink2);border-color:var(--ink2)}
+.btn-signal{background:var(--signal);color:#fff;border-color:var(--signal)}
+.btn-signal:hover:not(:disabled){background:#b82a18}
+.btn-ghost{border-color:var(--hairline);color:var(--ink2)}
+.btn-ghost:hover:not(:disabled){background:var(--surface);color:var(--ink);border-color:var(--ink)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn-block{width:100%;justify-content:center}
+.inp{width:100%;padding:8px 12px;border:1px solid var(--hairline);background:var(--bg);color:var(--ink);font-size:13px;font-family:'Inter Tight',sans-serif;outline:none;border-radius:0;transition:border-color .12s}
+.inp:focus{border-color:var(--ink)}
+.inp::placeholder{color:var(--muted)}
+.card{background:var(--bg);border:1px solid var(--hairline);padding:20px}
+.label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;display:block}
+.error-msg{padding:8px 12px;background:var(--signal-g);border:1px solid var(--signal);color:var(--signal);font-size:12px;margin-top:8px}
 .container{max-width:1100px;margin:0 auto;padding:0 24px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;border:1px solid}
+input[type=range]{width:100%;accent-color:var(--ink);cursor:pointer}
+select.inp{cursor:pointer}
 </style>
 </head>
 <body>
@@ -49,34 +53,27 @@ a:hover{text-decoration:underline}
 <script type="text/babel">
 const { useState, useEffect, useCallback, useRef } = React;
 
-// ══════════════════════════════════════════
-// CONFIG — Keep YOUR Supabase values here
-// ══════════════════════════════════════════
 const SUPABASE_URL = window.__SUPABASE_URL__ || "https://wcpsbubbnioyeypgtlqi.supabase.co";
 const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcHNidWJibmlveWV5cGd0bHFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MjU2NzMsImV4cCI6MjA5ODAwMTY3M30.AF3F-K4m1Y0w2HereHoG0rcPcJezZtoO8kmJLUaXX2E";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ══════════════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════════════
 const C = {
-  bg:"#0B0F1A",surface:"#131825",surface2:"#1A2035",card:"#161C2E",
-  border:"#232B42",accent:"#4F8BFF",accentG:"rgba(79,139,255,0.15)",
-  warm:"#FF6B4A",warmG:"rgba(255,107,74,0.15)",green:"#34D399",greenG:"rgba(52,211,153,0.12)",
-  yellow:"#FBBF24",yellowG:"rgba(251,191,36,0.12)",purple:"#A78BFA",purpleG:"rgba(167,139,250,0.12)",
-  text:"#E8ECF4",muted:"#8892A8",dim:"#5A6480",
+  bg:"#F2F2EE",surface:"#E9E7DF",surface2:"#DDDBD3",
+  ink:"#0A0A0A",ink2:"#4A4A46",muted:"#7A7A75",hairline:"#C7C7C0",
+  signal:"#D6321F",signalG:"rgba(214,50,31,0.08)",
+  moss:"#5C7A5E",mossG:"rgba(92,122,94,0.10)",
+  amber:"#C87C2A",amberG:"rgba(200,124,42,0.10)",
 };
 
-const QUAD = {
-  "Manage Closely":{color:C.warm,glow:C.warmG,icon:"🎯",strategy:"High engagement, frequent 1:1s"},
-  "Keep Satisfied":{color:C.purple,glow:C.purpleG,icon:"👁️",strategy:"Regular updates, address concerns"},
-  "Keep Informed":{color:C.accent,glow:C.accentG,icon:"📣",strategy:"Periodic newsletters, group meetings"},
-  "Monitor":{color:C.muted,glow:"rgba(136,146,168,0.1)",icon:"📋",strategy:"Light touch, monitor for changes"},
+const QUAD={
+  "Manage Closely":{color:C.signal,bg:C.signalG,strategy:"High engagement — weekly 1:1s"},
+  "Keep Satisfied":{color:C.amber,bg:C.amberG,strategy:"Regular updates — address concerns"},
+  "Keep Informed":{color:C.moss,bg:C.mossG,strategy:"Periodic newsletters — group meetings"},
+  "Monitor":{color:C.muted,bg:"rgba(122,122,117,0.08)",strategy:"Light touch — monitor for changes"},
 };
 const CADENCE={"Manage Closely":"Weekly 1:1","Keep Satisfied":"Bi-weekly update","Keep Informed":"Monthly newsletter","Monitor":"Quarterly check-in"};
-const SENT_COLORS={champion:C.green,supportive:"#6DD4A0",neutral:C.yellow,resistant:"#FF9B6A",blocker:C.warm};
-const SENT_EMOJI={champion:"🟢",supportive:"🟡",neutral:"⚪",resistant:"🟠",blocker:"🔴"};
-const MAP_TYPES={product:{label:"Product",icon:"📦",color:C.warm,desc:"Product launches & roadmaps"},project:{label:"Project",icon:"🔧",color:C.accent,desc:"Change initiatives & rollouts"},portfolio:{label:"Portfolio",icon:"📊",color:C.purple,desc:"Cross-program strategic view"}};
+const SENT_COLORS={champion:C.moss,supportive:"#7A9E7C",neutral:C.amber,resistant:"#B85C30",blocker:C.signal};
+const MAP_TYPES={product:{label:"Product",code:"PRD",color:C.signal},project:{label:"Project",code:"PRJ",color:C.ink},portfolio:{label:"Portfolio",code:"PTF",color:C.moss}};
 
 function classify(inf,int){
   if(inf>=50&&int>=50)return"Manage Closely";
@@ -85,144 +82,137 @@ function classify(inf,int){
   return"Monitor";
 }
 
-// ══════════════════════════════════════════
-// AUTH-PROTECTED AI CALL
-// FIX: now correctly passes max_tokens so the
-// serverless function respects it (was defaulting to 1000)
-// ══════════════════════════════════════════
-async function callAI(prompt, system, tokens=2000){
+async function callAI(prompt,system,tokens=2000){
   try{
     const{data:{session}}=await sb.auth.getSession();
     if(!session)return"Please log in to use AI features.";
-    const res=await fetch("/api/ai",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},
-      body:JSON.stringify({
-        max_tokens:tokens,
-        system:system||"",
-        messages:[{role:"user",content:prompt}]
-      }),
-    });
+    const res=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},body:JSON.stringify({max_tokens:tokens,system:system||"",messages:[{role:"user",content:prompt}]})});
     const data=await res.json();
-    if(!res.ok){
-      console.error("[callAI] API error",res.status,data);
-      return"AI error: "+(data.detail||data.error||res.status);
-    }
+    if(!res.ok)return"AI error: "+(data.detail||data.error||res.status);
     return data.content?.map(b=>b.text||"").join("\n")||"";
-  }catch(e){
-    console.error("[callAI] Exception",e);
-    return"AI unavailable: "+e.message;
-  }
+  }catch(e){return"AI unavailable: "+e.message;}
 }
 
-// ══════════════════════════════════════════
-// ROUTER
-// ══════════════════════════════════════════
 function useRouter(){
   const[route,setRoute]=useState(window.location.hash.slice(1)||"/");
-  useEffect(()=>{
-    const h=()=>setRoute(window.location.hash.slice(1)||"/");
-    window.addEventListener("hashchange",h);
-    return()=>window.removeEventListener("hashchange",h);
-  },[]);
+  useEffect(()=>{const h=()=>setRoute(window.location.hash.slice(1)||"/");window.addEventListener("hashchange",h);return()=>window.removeEventListener("hashchange",h);},[]);
   return route;
 }
-function go(path){window.location.hash=path}
+function go(path){window.location.hash=path;}
 
-// ══════════════════════════════════════════
-// AUTH HOOK
-// ══════════════════════════════════════════
 function useAuth(){
   const[user,setUser]=useState(null);
   const[loading,setLoading]=useState(true);
   useEffect(()=>{
-    sb.auth.getSession().then(({data:{session}})=>{
-      setUser(session?.user||null);setLoading(false);
-    });
-    const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{
-      setUser(session?.user||null);
-    });
+    sb.auth.getSession().then(({data:{session}})=>{setUser(session?.user||null);setLoading(false);});
+    const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
     return()=>subscription.unsubscribe();
   },[]);
   return{user,loading};
 }
 
-// ══════════════════════════════════════════
-// SHARED COMPONENTS
-// ══════════════════════════════════════════
-function Logo({onClick}){
-  return(
-    <div onClick={onClick} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
-      <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,#4F8BFF,#A78BFA)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:700,color:"#fff"}}>S</div>
-      <span style={{fontSize:18,fontWeight:700,letterSpacing:"-.02em"}}>StakeholderMap</span>
-    </div>
-  );
-}
-
 function Nav({user}){
   return(
-    <div style={{padding:"12px 24px",borderBottom:"1px solid var(--border)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(19,24,37,0.85)",backdropFilter:"blur(12px)",position:"sticky",top:0,zIndex:50}}>
-      <Logo onClick={()=>go(user?"/dashboard":"/")}/>
-      <div style={{display:"flex",alignItems:"center",gap:16}}>
-        {!user&&<><a href="#/features" style={{fontSize:14,color:C.muted}}>Features</a><a href="#/pricing" style={{fontSize:14,color:C.muted}}>Pricing</a><button className="btn btn-p btn-sm" onClick={()=>go("/login")}>Log in</button></>}
-        {user&&<>
-          <button className="btn btn-s btn-sm" onClick={()=>go("/dashboard")}>Dashboard</button>
-          <span style={{fontSize:12,color:C.dim}}>{user.email}</span>
-          <button className="btn btn-g btn-sm" onClick={async()=>{await sb.auth.signOut();go("/")}}>Log out</button>
-        </>}
+    <div style={{borderBottom:`1px solid ${C.hairline}`,background:C.bg,position:"sticky",top:0,zIndex:50}}>
+      <div className="container" style={{display:"flex",alignItems:"center",justifyContent:"space-between",height:52}}>
+        <div style={{display:"flex",alignItems:"center",gap:20}}>
+          <div onClick={()=>go(user?"/dashboard":"/")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:22,height:22,background:C.ink,display:"grid",gridTemplateColumns:"1fr 1fr",gap:2,padding:3}}>
+              <div style={{background:C.bg,opacity:1}}/><div style={{background:C.bg,opacity:.5}}/>
+              <div style={{background:C.bg,opacity:.3}}/><div style={{background:C.bg,opacity:.7}}/>
+            </div>
+            <span style={{fontSize:13,fontWeight:600,letterSpacing:"-0.02em"}}>StakeholderMap</span>
+            <span className="mono" style={{fontSize:9,color:C.muted,letterSpacing:".06em",marginLeft:2}}>by Transformation OS</span>
+          </div>
+          {user&&(
+            <div style={{display:"flex",gap:2}}>
+              <button onClick={()=>go("/dashboard")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.ink2,fontSize:12}}>Dashboard</button>
+              <button onClick={()=>window.open("https://transformation-os-mauve.vercel.app","_blank")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.muted,fontSize:12}}>Transformation OS ↗</button>
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          {!user&&<><a href="#/features" style={{fontSize:12,color:C.muted}}>Features</a><a href="#/pricing" style={{fontSize:12,color:C.muted,marginLeft:12}}>Pricing</a><button className="btn btn-fill btn-sm" onClick={()=>go("/login")} style={{marginLeft:8}}>Log in</button></>}
+          {user&&<><span className="mono" style={{fontSize:11,color:C.muted}}>{user.email}</span><button className="btn btn-ghost btn-sm" onClick={async()=>{await sb.auth.signOut();go("/")}}>Log out</button></>}
+        </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════
-// PUBLIC PAGES
-// ══════════════════════════════════════════
 function HomePage(){
   return(
-    <div style={{textAlign:"center",padding:"120px 24px 80px",maxWidth:700,margin:"0 auto"}}>
-      <div className="badge" style={{background:C.accentG,color:C.accent,border:"1px solid rgba(79,139,255,0.2)",marginBottom:20}}>Now in early access</div>
-      <h1 style={{fontFamily:"Fraunces,serif",fontSize:"clamp(36px,5vw,56px)",fontWeight:900,lineHeight:1.1,letterSpacing:"-.03em",marginBottom:20}}>
-        Stop guessing.<br/><span style={{background:"linear-gradient(135deg,#4F8BFF,#A78BFA)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Map your stakeholders</span> with AI.
-      </h1>
-      <p style={{fontSize:18,color:C.muted,lineHeight:1.7,marginBottom:36}}>
-        Turn a messy list into a visual influence map, AI strategy brief, and tailored communication plan — in minutes.
-      </p>
-      <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-        <button className="btn btn-p" style={{padding:"14px 28px",fontSize:15}} onClick={()=>go("/signup")}>Start Free →</button>
-        <button className="btn btn-s" style={{padding:"14px 28px",fontSize:15}} onClick={()=>go("/features")}>See Features</button>
+    <div>
+      <div style={{borderBottom:`1px solid ${C.hairline}`,padding:"80px 0 64px"}}>
+        <div className="container">
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".1em",marginBottom:20}}>STAKEHOLDERMAP / AI STAKEHOLDER INTELLIGENCE</div>
+          <h1 style={{fontSize:"clamp(28px,4vw,48px)",fontWeight:600,letterSpacing:"-0.035em",lineHeight:1.1,maxWidth:640,marginBottom:20}}>Stop guessing who matters.<br/>Map your stakeholders with AI.</h1>
+          <p style={{fontSize:15,color:C.ink2,maxWidth:480,lineHeight:1.7,marginBottom:32}}>Turn a messy contact list into a visual influence map, AI strategy brief, and tailored communication plan — in minutes.</p>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn btn-fill" style={{padding:"10px 24px"}} onClick={()=>go("/signup")}>Start free →</button>
+            <button className="btn" style={{padding:"10px 24px"}} onClick={()=>go("/features")}>See features</button>
+          </div>
+          <p className="mono" style={{fontSize:11,color:C.muted,marginTop:14}}>Free · 3 maps · No credit card required</p>
+        </div>
       </div>
-      <p style={{color:C.dim,fontSize:13,marginTop:16}}>Free for up to 3 maps. No credit card required.</p>
+      <div style={{borderBottom:`1px solid ${C.hairline}`}}>
+        <div className="container">
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))"}}>
+            {[{code:"F-01",title:"Visual matrix",desc:"Plot stakeholders on an influence/interest grid with sentiment coding."},
+              {code:"F-02",title:"AI strategy briefs",desc:"Engagement strategies, risk analysis, and coalition-building."},
+              {code:"F-03",title:"Message drafting",desc:"AI writes stakeholder-specific communications per quadrant."},
+              {code:"F-04",title:"Bulk import",desc:"Paste any list — AI parses names, roles, and estimates scores."},
+              {code:"F-05",title:"Export",desc:"PDF, CSV, SVG — ready for leadership."},
+            ].map(({code,title,desc})=>(
+              <div key={code} style={{padding:"28px 20px",borderRight:`1px solid ${C.hairline}`}}>
+                <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>{code}</div>
+                <h3 style={{fontSize:13,fontWeight:600,marginBottom:6}}>{title}</h3>
+                <p style={{fontSize:12,color:C.ink2,lineHeight:1.6}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{padding:"64px 0",textAlign:"center"}}>
+        <div className="container">
+          <h2 style={{fontSize:22,fontWeight:600,letterSpacing:"-0.03em",marginBottom:12}}>Ready to map your landscape?</h2>
+          <p style={{fontSize:13,color:C.ink2,marginBottom:28}}>Free to start. No credit card required.</p>
+          <button className="btn btn-fill" style={{padding:"10px 28px"}} onClick={()=>go("/signup")}>Start free →</button>
+        </div>
+      </div>
     </div>
   );
 }
 
 function FeaturesPage(){
   const features=[
-    {icon:"🗺️",title:"Visual Influence Matrix",desc:"Plot stakeholders on an interactive power/interest grid with sentiment color coding."},
-    {icon:"🤖",title:"AI Strategy Briefs",desc:"Get instant engagement strategies, risk analysis, and coalition-building recommendations."},
-    {icon:"✉️",title:"Draft Messages",desc:"AI writes stakeholder-specific communications matched to their quadrant and sentiment."},
-    {icon:"⚡",title:"Bulk Import",desc:"Paste a messy list from anywhere — AI parses names, roles, and estimates scores automatically."},
-    {icon:"📤",title:"Export Everywhere",desc:"Download as PDF report, presentation slide, CSV, or SVG — ready for leadership."},
-    {icon:"📊",title:"Product, Project & Portfolio",desc:"Organize maps by type. Track stakeholder landscapes across multiple initiatives."},
+    {code:"F-01",title:"Visual influence matrix",desc:"Plot stakeholders on an interactive power/interest grid. Click any dot to see their profile. Filter by quadrant to focus your view."},
+    {code:"F-02",title:"AI strategy briefs",desc:"Engagement strategies, risk analysis, and coalition-building — tailored to your exact stakeholder landscape."},
+    {code:"F-03",title:"Message drafting",desc:"AI writes stakeholder-specific communications matched to their quadrant and sentiment. Copy and send in seconds."},
+    {code:"F-04",title:"Bulk import",desc:"Paste a messy list from anywhere — meeting notes, org charts, LinkedIn. AI parses names, roles, and estimates scores."},
+    {code:"F-05",title:"Export everywhere",desc:"PDF report, CSV spreadsheet, or SVG matrix. Ready to drop into a leadership deck."},
+    {code:"F-06",title:"Product, project and portfolio",desc:"Organize maps by type. Track stakeholder landscapes across multiple initiatives simultaneously."},
   ];
   return(
-    <div className="container" style={{padding:"80px 24px"}}>
-      <div style={{textAlign:"center",marginBottom:48}}>
-        <h1 style={{fontFamily:"Fraunces,serif",fontSize:36,fontWeight:800,marginBottom:12}}>Everything you need to manage stakeholders</h1>
-        <p style={{color:C.muted,fontSize:16,maxWidth:500,margin:"0 auto"}}>From mapping to messaging, we handle the heavy lifting.</p>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:20}}>
-        {features.map(f=>(
-          <div key={f.title} className="card" style={{transition:"all .3s"}}>
-            <div style={{fontSize:28,marginBottom:12}}>{f.icon}</div>
-            <h3 style={{fontSize:16,fontWeight:700,marginBottom:8}}>{f.title}</h3>
-            <p style={{fontSize:14,color:C.muted,lineHeight:1.6}}>{f.desc}</p>
+    <div className="container" style={{padding:"48px 24px 60px"}}>
+      <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:12}}>FEATURES</div>
+      <h1 style={{fontSize:28,fontWeight:600,letterSpacing:"-0.03em",marginBottom:8}}>Everything you need to manage stakeholders</h1>
+      <p style={{color:C.ink2,fontSize:13,marginBottom:32}}>From mapping to messaging — we handle the heavy lifting.</p>
+      <div style={{border:`1px solid ${C.hairline}`}}>
+        {features.map((f,i)=>(
+          <div key={f.code} style={{display:"grid",gridTemplateColumns:"80px 1fr",borderBottom:i<features.length-1?`1px solid ${C.hairline}`:"none"}}>
+            <div style={{padding:"20px 16px",background:C.surface,borderRight:`1px solid ${C.hairline}`}}>
+              <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em"}}>{f.code}</div>
+            </div>
+            <div style={{padding:"20px 24px"}}>
+              <h3 style={{fontSize:14,fontWeight:600,marginBottom:4}}>{f.title}</h3>
+              <p style={{fontSize:13,color:C.ink2,lineHeight:1.6}}>{f.desc}</p>
+            </div>
           </div>
         ))}
       </div>
-      <div style={{textAlign:"center",marginTop:48}}>
-        <button className="btn btn-p" style={{padding:"14px 28px",fontSize:15}} onClick={()=>go("/signup")}>Get Started Free →</button>
+      <div style={{textAlign:"center",marginTop:40}}>
+        <button className="btn btn-fill" style={{padding:"10px 28px"}} onClick={()=>go("/signup")}>Get started free →</button>
       </div>
     </div>
   );
@@ -230,29 +220,30 @@ function FeaturesPage(){
 
 function PricingPage(){
   const tiers=[
-    {name:"Free",price:"€0",desc:"Try it out",features:["Up to 3 maps","10 stakeholders per map","Visual matrix","Basic quadrant classification"],cta:"Start Free",action:()=>go("/signup"),variant:"btn-s"},
-    {name:"Pro",price:"€19",desc:"For practitioners",features:["Unlimited maps & stakeholders","AI strategy briefs & risk analysis","AI-drafted messages","PDF & PowerPoint export","Bulk import with AI"],cta:"Get Pro →",action:()=>go("/signup"),variant:"btn-p",featured:true},
-    {name:"Team",price:"€49",desc:"For teams",features:["Everything in Pro","5 team members","Shared stakeholder plans","Priority AI generation"],cta:"Contact Us",action:()=>go("/signup"),variant:"btn-s"},
+    {name:"Free",price:"€0",desc:"Try it out",features:["3 maps","10 stakeholders per map","Visual matrix","Quadrant classification"],cta:"Start free",action:()=>go("/signup"),fill:false},
+    {name:"Pro",price:"€19",desc:"For practitioners",features:["Unlimited maps and stakeholders","AI strategy briefs and risk analysis","AI-drafted messages","PDF and PowerPoint export","Bulk import with AI"],cta:"Get Pro →",action:()=>go("/signup"),fill:true},
+    {name:"Team",price:"€49",desc:"For teams",features:["Everything in Pro","5 team members","Shared stakeholder plans","Priority AI generation"],cta:"Contact us",action:()=>go("/signup"),fill:false},
   ];
   return(
-    <div className="container" style={{padding:"80px 24px"}}>
-      <div style={{textAlign:"center",marginBottom:48}}>
-        <h1 style={{fontFamily:"Fraunces,serif",fontSize:36,fontWeight:800,marginBottom:12}}>Simple pricing</h1>
-        <p style={{color:C.muted,fontSize:16}}>Start free, upgrade when you need AI power.</p>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:20,maxWidth:900,margin:"0 auto"}}>
-        {tiers.map(t=>(
-          <div key={t.name} className="card" style={{display:"flex",flexDirection:"column",border:t.featured?`1px solid ${C.accent}`:"1px solid var(--border)",boxShadow:t.featured?`0 0 30px ${C.accentG}`:"none",position:"relative"}}>
-            {t.featured&&<div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",padding:"4px 14px",borderRadius:100,background:C.accent,color:"#fff",fontSize:11,fontWeight:700,letterSpacing:".06em"}}>MOST POPULAR</div>}
-            <div style={{fontSize:14,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:".06em"}}>{t.name}</div>
-            <div style={{fontFamily:"Fraunces,serif",fontSize:42,fontWeight:900,margin:"12px 0 4px"}}>{t.price}<span style={{fontSize:16,fontWeight:500,color:C.muted}}>/mo</span></div>
-            <div style={{fontSize:14,color:C.dim,marginBottom:24}}>{t.desc}</div>
+    <div className="container" style={{padding:"48px 24px 60px"}}>
+      <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:12}}>PRICING</div>
+      <h1 style={{fontSize:28,fontWeight:600,letterSpacing:"-0.03em",marginBottom:8}}>Simple pricing</h1>
+      <p style={{color:C.ink2,fontSize:13,marginBottom:40}}>Start free, upgrade when you need AI power.</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",border:`1px solid ${C.hairline}`}}>
+        {tiers.map((t,i)=>(
+          <div key={t.name} style={{padding:28,borderRight:i<tiers.length-1?`1px solid ${C.hairline}`:"none",display:"flex",flexDirection:"column",position:"relative",background:t.fill?C.ink:C.bg}}>
+            {t.fill&&<div className="mono" style={{position:"absolute",top:-1,left:24,fontSize:9,padding:"3px 10px",background:C.signal,color:"#fff",letterSpacing:".08em"}}>MOST POPULAR</div>}
+            <div className="mono" style={{fontSize:10,color:t.fill?C.hairline:C.muted,letterSpacing:".08em",marginBottom:12}}>{t.name.toUpperCase()}</div>
+            <div className="mono" style={{fontSize:36,fontWeight:600,letterSpacing:"-0.04em",color:t.fill?"#F2F2EE":C.ink,marginBottom:2}}>{t.price}<span style={{fontSize:14,fontWeight:400,color:t.fill?C.hairline:C.muted}}>/mo</span></div>
+            <div style={{fontSize:12,color:t.fill?C.hairline:C.muted,marginBottom:24}}>{t.desc}</div>
             <div style={{flex:1,marginBottom:24}}>
-              {t.features.map(f=><div key={f} style={{padding:"8px 0",fontSize:14,color:C.muted,display:"flex",alignItems:"center",gap:8}}>
-                <span style={{color:C.green,fontWeight:700}}>✓</span>{f}
-              </div>)}
+              {t.features.map(f=>(
+                <div key={f} style={{padding:"7px 0",fontSize:13,color:t.fill?"#E9E7DF":C.ink2,display:"flex",alignItems:"flex-start",gap:8,borderBottom:`1px solid ${t.fill?"rgba(255,255,255,0.08)":C.hairline}`}}>
+                  <span style={{color:t.fill?C.hairline:C.moss,fontWeight:600,flexShrink:0}}>✓</span>{f}
+                </div>
+              ))}
             </div>
-            <button className={`btn ${t.variant} btn-block`} onClick={t.action}>{t.cta}</button>
+            <button onClick={t.action} className={`btn btn-block${t.fill?" btn-signal":""}`} style={t.fill?{}:{borderColor:C.ink}}>{t.cta}</button>
           </div>
         ))}
       </div>
@@ -260,65 +251,43 @@ function PricingPage(){
   );
 }
 
-// ══════════════════════════════════════════
-// AUTH PAGES
-// ══════════════════════════════════════════
 function AuthPage({mode}){
-  const[email,setEmail]=useState("");
-  const[password,setPassword]=useState("");
-  const[error,setError]=useState("");
-  const[loading,setLoading]=useState(false);
-  const[confirmSent,setConfirmSent]=useState(false);
+  const[email,setEmail]=useState("");const[password,setPassword]=useState("");const[error,setError]=useState("");const[loading,setLoading]=useState(false);const[confirmSent,setConfirmSent]=useState(false);
   const isLogin=mode==="login";
-
   const handleSubmit=async()=>{
-    if(!email||!password){setError("Email and password are required.");return;}
-    if(password.length<6){setError("Password must be at least 6 characters.");return;}
+    if(!email||!password){setError("Email and password required.");return;}
     setLoading(true);setError("");
     try{
-      if(isLogin){
-        const{error:e}=await sb.auth.signInWithPassword({email,password});
-        if(e)throw e;
-        go("/dashboard");
-      }else{
-        const{error:e}=await sb.auth.signUp({email,password});
-        if(e)throw e;
-        setConfirmSent(true);
-      }
+      if(isLogin){const{error:e}=await sb.auth.signInWithPassword({email,password});if(e)throw e;go("/dashboard");}
+      else{const{error:e}=await sb.auth.signUp({email,password});if(e)throw e;setConfirmSent(true);}
     }catch(e){setError(e.message||"Something went wrong.");}
     setLoading(false);
   };
-
-  if(confirmSent){
-    return(
-      <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{maxWidth:400,textAlign:"center",padding:32}}>
-          <div style={{fontSize:48,marginBottom:16}}>📧</div>
-          <h2 style={{fontSize:22,fontWeight:700,marginBottom:8}}>Check your email</h2>
-          <p style={{color:C.muted,fontSize:14,marginBottom:24,lineHeight:1.6}}>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then come back and log in.</p>
-          <button className="btn btn-p" onClick={()=>go("/login")}>Go to Login</button>
-        </div>
+  if(confirmSent)return(
+    <div style={{minHeight:"70vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div className="card" style={{maxWidth:380,width:"100%",padding:32,textAlign:"center"}}>
+        <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:16}}>VERIFY EMAIL</div>
+        <h2 style={{fontSize:18,fontWeight:600,marginBottom:8}}>Check your inbox</h2>
+        <p style={{color:C.ink2,fontSize:13,marginBottom:24,lineHeight:1.6}}>Confirmation sent to <strong>{email}</strong>. Click the link, then log in.</p>
+        <button className="btn btn-fill btn-block" onClick={()=>go("/login")}>Go to login</button>
       </div>
-    );
-  }
-
+    </div>
+  );
   return(
-    <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{maxWidth:400,width:"100%",padding:24}}>
-        <div style={{textAlign:"center",marginBottom:24}}><Logo onClick={()=>go("/")}/></div>
+    <div style={{minHeight:"70vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{maxWidth:360,width:"100%",padding:24}}>
+        <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:20,letterSpacing:".08em"}}>STAKEHOLDERMAP / {isLogin?"LOG IN":"CREATE ACCOUNT"}</div>
         <div className="card" style={{padding:28}}>
-          <h2 style={{fontSize:20,fontWeight:700,marginBottom:4}}>{isLogin?"Welcome back":"Create your account"}</h2>
-          <p style={{color:C.muted,fontSize:13,marginBottom:20}}>{isLogin?"Log in to access your stakeholder maps.":"Start mapping your stakeholders for free."}</p>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <div><label className="label">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="jane@company.com" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
+          <h2 style={{fontSize:18,fontWeight:600,marginBottom:4}}>{isLogin?"Welcome back":"Create account"}</h2>
+          <p style={{color:C.ink2,fontSize:12,marginBottom:20}}>{isLogin?"Log in to access your maps.":"Start mapping your stakeholders."}</p>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <div><label className="label">Email</label><input className="inp" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
             <div><label className="label">Password</label><input className="inp" type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder={isLogin?"Your password":"Min. 6 characters"} onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
             {error&&<div className="error-msg">{error}</div>}
-            <button className="btn btn-p btn-block" onClick={handleSubmit} disabled={loading} style={{marginTop:4}}>
-              {loading?"...":(isLogin?"Log in":"Create Account")}
-            </button>
+            <button className="btn btn-fill btn-block" onClick={handleSubmit} disabled={loading} style={{marginTop:4}}>{loading?"...":(isLogin?"Log in":"Create account")}</button>
           </div>
-          <div style={{textAlign:"center",marginTop:16,fontSize:13,color:C.muted}}>
-            {isLogin?<>Don't have an account? <a href="#/signup">Sign up</a></>:<>Already have an account? <a href="#/login">Log in</a></>}
+          <div style={{textAlign:"center",marginTop:16,fontSize:12,color:C.muted}}>
+            {isLogin?<>No account? <a href="#/signup">Sign up</a></>:<>Already have one? <a href="#/login">Log in</a></>}
           </div>
         </div>
       </div>
@@ -326,525 +295,313 @@ function AuthPage({mode}){
   );
 }
 
-// ══════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════
 function Dashboard({user}){
-  const[maps,setMaps]=useState([]);
-  const[loading,setLoading]=useState(true);
-  const[filter,setFilter]=useState("all");
-  const[showCreate,setShowCreate]=useState(false);
-  const[newName,setNewName]=useState("");
-  const[newType,setNewType]=useState("project");
-
+  const[maps,setMaps]=useState([]);const[loading,setLoading]=useState(true);const[filter,setFilter]=useState("all");const[showCreate,setShowCreate]=useState(false);const[newName,setNewName]=useState("");const[newType,setNewType]=useState("project");
   useEffect(()=>{loadMaps()},[]);
-
-  const loadMaps=async()=>{
-    setLoading(true);
-    const{data,error}=await sb.from("maps").select("*").order("updated_at",{ascending:false});
-    if(!error&&data)setMaps(data);
-    setLoading(false);
-  };
-
-  const createMap=async()=>{
-    if(!newName.trim())return;
-    const{data,error}=await sb.from("maps").insert({user_id:user.id,name:newName.trim(),type:newType,stakeholders:[]}).select().single();
-    if(!error&&data){setShowCreate(false);setNewName("");go("/map/"+data.id);}
-  };
-
-  const deleteMap=async(id)=>{
-    if(!confirm("Delete this map? This cannot be undone."))return;
-    await sb.from("maps").delete().eq("id",id);
-    loadMaps();
-  };
-
+  const loadMaps=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").order("updated_at",{ascending:false});if(!error&&data)setMaps(data);setLoading(false);};
+  const createMap=async()=>{if(!newName.trim())return;const{data,error}=await sb.from("maps").insert({user_id:user.id,name:newName.trim(),type:newType,stakeholders:[]}).select().single();if(!error&&data){setShowCreate(false);setNewName("");go("/map/"+data.id);}};
+  const deleteMap=async(id)=>{if(!confirm("Delete this map? This cannot be undone."))return;await sb.from("maps").delete().eq("id",id);loadMaps();};
   const filtered=filter==="all"?maps:maps.filter(m=>m.type===filter);
-  const counts={all:maps.length,product:maps.filter(m=>m.type==="product").length,project:maps.filter(m=>m.type==="project").length,portfolio:maps.filter(m=>m.type==="portfolio").length};
-
+  const counts={all:maps.length,...Object.keys(MAP_TYPES).reduce((a,k)=>({...a,[k]:maps.filter(m=>m.type===k).length}),{})};
   return(
-    <div className="container" style={{padding:"24px 24px 60px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-        <h1 style={{fontSize:24,fontWeight:800}}>Your Maps</h1>
-        <button className="btn btn-p" onClick={()=>setShowCreate(true)}>+ New Map</button>
+    <div className="container" style={{padding:"32px 24px 60px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
+        <div>
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:4}}>01 / MAPS</div>
+          <h1 style={{fontSize:22,fontWeight:600,letterSpacing:"-0.03em"}}>Your stakeholder maps</h1>
+        </div>
+        <button className="btn btn-fill btn-sm" onClick={()=>setShowCreate(true)}>+ New map</button>
       </div>
-
-      {showCreate&&<div className="card" style={{marginBottom:20}}>
-        <h3 style={{fontSize:16,fontWeight:700,marginBottom:14}}>Create a new stakeholder map</h3>
-        <div style={{marginBottom:12}}><label className="label">Map name</label><input className="inp" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. ERP Migration Stakeholders" onKeyDown={e=>e.key==="Enter"&&createMap()}/></div>
-        <div style={{marginBottom:14}}>
-          <label className="label">Map type</label>
-          <div style={{display:"flex",gap:8,marginTop:6}}>
-            {Object.entries(MAP_TYPES).map(([k,v])=>(
-              <button key={k} onClick={()=>setNewType(k)} style={{flex:1,padding:"12px",borderRadius:8,border:`1px solid ${newType===k?v.color:C.border}`,background:newType===k?v.color+"18":"transparent",color:newType===k?v.color:C.muted,cursor:"pointer",fontFamily:"inherit",fontSize:13,fontWeight:600,textAlign:"center"}}>
-                <div style={{fontSize:20,marginBottom:4}}>{v.icon}</div>{v.label}
-              </button>
-            ))}
+      {showCreate&&(
+        <div className="card" style={{marginBottom:20,padding:24}}>
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:14}}>NEW MAP</div>
+          <div style={{marginBottom:12}}><label className="label">Map name</label><input className="inp" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. ERP Migration Stakeholders" onKeyDown={e=>e.key==="Enter"&&createMap()}/></div>
+          <div style={{marginBottom:16}}>
+            <label className="label">Map type</label>
+            <div style={{display:"flex",gap:0,marginTop:6,border:`1px solid ${C.hairline}`}}>
+              {Object.entries(MAP_TYPES).map(([k,v],i)=>(
+                <button key={k} onClick={()=>setNewType(k)} style={{flex:1,padding:"10px 8px",border:"none",borderRight:i<2?`1px solid ${C.hairline}`:"none",background:newType===k?C.ink:C.bg,color:newType===k?C.bg:C.ink2,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",fontSize:12,fontWeight:500}}>
+                  <div className="mono" style={{fontSize:9,marginBottom:2,opacity:.7}}>{v.code}</div>{v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowCreate(false)}>Cancel</button>
+            <button className="btn btn-fill btn-sm" onClick={createMap} disabled={!newName.trim()}>Create map</button>
           </div>
         </div>
-        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-          <button className="btn btn-s btn-sm" onClick={()=>setShowCreate(false)}>Cancel</button>
-          <button className="btn btn-p btn-sm" onClick={createMap} disabled={!newName.trim()}>Create Map</button>
-        </div>
-      </div>}
-
-      <div style={{display:"flex",gap:2,background:C.surface,borderRadius:10,padding:3,marginBottom:20}}>
-        {[{id:"all",label:"All",icon:"📋"},{id:"product",label:"Product",icon:"📦"},{id:"project",label:"Project",icon:"🔧"},{id:"portfolio",label:"Portfolio",icon:"📊"}].map(t=>(
-          <button key={t.id} onClick={()=>setFilter(t.id)} style={{padding:"8px 16px",borderRadius:8,border:"none",background:filter===t.id?C.surface2:"transparent",color:filter===t.id?C.text:C.muted,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
-            {t.icon} {t.label} ({counts[t.id]})
+      )}
+      <div style={{display:"flex",gap:0,borderBottom:`1px solid ${C.hairline}`,marginBottom:20}}>
+        {[{id:"all",l:"All"},{id:"product",l:"Product"},{id:"project",l:"Project"},{id:"portfolio",l:"Portfolio"}].map(t=>(
+          <button key={t.id} onClick={()=>setFilter(t.id)} style={{padding:"8px 16px",border:"none",background:"transparent",borderBottom:filter===t.id?`2px solid ${C.ink}`:"2px solid transparent",color:filter===t.id?C.ink:C.muted,fontSize:12,fontWeight:filter===t.id?600:400,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",marginBottom:-1}}>
+            {t.l} <span className="mono" style={{fontSize:10,marginLeft:4}}>({counts[t.id]||0})</span>
           </button>
         ))}
       </div>
-
-      {loading?<p style={{color:C.dim,textAlign:"center",padding:40}}>Loading...</p>:
-       filtered.length===0?
-        <div style={{textAlign:"center",padding:48}}>
-          <div style={{fontSize:48,marginBottom:12}}>🗺️</div>
-          <h3 style={{fontSize:18,fontWeight:700,marginBottom:8}}>{maps.length===0?"No maps yet":"No maps in this category"}</h3>
-          <p style={{color:C.muted,fontSize:14,marginBottom:20}}>Create your first stakeholder map to get started.</p>
-          {maps.length===0&&<button className="btn btn-p" onClick={()=>setShowCreate(true)}>+ Create Your First Map</button>}
+      {loading?(<div className="mono" style={{fontSize:12,color:C.muted,padding:"40px 0"}}>Loading...</div>)
+      :filtered.length===0?(
+        <div className="card" style={{textAlign:"center",padding:48}}>
+          <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:12}}>NO MAPS</div>
+          <h3 style={{fontSize:16,fontWeight:600,marginBottom:6}}>{maps.length===0?"No maps yet":"No maps in this category"}</h3>
+          <p style={{color:C.ink2,fontSize:13,marginBottom:24}}>Create your first stakeholder map to get started.</p>
+          {maps.length===0&&<button className="btn btn-fill" onClick={()=>setShowCreate(true)}>+ Create first map</button>}
         </div>
-       :
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
-          {filtered.map(m=>{
+      ):(
+        <div style={{border:`1px solid ${C.hairline}`}}>
+          <div style={{display:"grid",gridTemplateColumns:"2fr 80px 80px 120px 80px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`}}>
+            {["Map name","Type","Stakeholders","Updated",""].map(h=><div key={h} className="label" style={{margin:0}}>{h}</div>)}
+          </div>
+          {filtered.map((m,i)=>{
             const mt=MAP_TYPES[m.type]||MAP_TYPES.project;
             const sh=m.stakeholders||[];
             const qCounts={"Manage Closely":0,"Keep Satisfied":0,"Keep Informed":0,"Monitor":0};
-            sh.forEach(s=>{ const q=s.quadrant||classify(s.influence||50,s.interest||50); qCounts[q]=(qCounts[q]||0)+1; });
+            sh.forEach(s=>{const q=s.quadrant||classify(s.influence||50,s.interest||50);qCounts[q]=(qCounts[q]||0)+1;});
             return(
-              <div key={m.id} className="card" onClick={()=>go("/map/"+m.id)} style={{cursor:"pointer",transition:"all .2s"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-                  <div>
-                    <span className="badge" style={{background:mt.color+"18",color:mt.color,marginBottom:6}}>{mt.icon} {mt.label}</span>
-                    <h3 style={{fontSize:16,fontWeight:700,marginTop:6}}>{m.name}</h3>
+              <div key={m.id} onClick={()=>go("/map/"+m.id)} style={{display:"grid",gridTemplateColumns:"2fr 80px 80px 120px 80px",padding:"12px 16px",borderBottom:i<filtered.length-1?`1px solid ${C.hairline}`:"none",alignItems:"center",cursor:"pointer"}}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <div>
+                  <div style={{fontSize:13,fontWeight:500}}>{m.name}</div>
+                  <div style={{display:"flex",gap:8,marginTop:4}}>
+                    {Object.entries(qCounts).filter(([,c])=>c>0).map(([q,c])=>(
+                      <span key={q} className="mono" style={{fontSize:9,color:QUAD[q].color}}>{c} {q.split(" ")[0]}</span>
+                    ))}
                   </div>
-                  <button className="btn btn-g btn-sm" onClick={e=>{e.stopPropagation();deleteMap(m.id)}}>🗑️</button>
                 </div>
-                <div style={{display:"flex",gap:8,marginBottom:8}}>
-                  {Object.entries(qCounts).map(([q,c])=>c>0&&(
-                    <span key={q} style={{fontSize:11,color:QUAD[q].color,fontWeight:600}}>{QUAD[q].icon}{c}</span>
-                  ))}
-                </div>
-                <div style={{fontSize:12,color:C.dim}}>
-                  {sh.length} stakeholder{sh.length!==1?"s":""} · Updated {new Date(m.updated_at).toLocaleDateString()}
-                </div>
+                <div><span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span></div>
+                <div className="mono" style={{fontSize:12}}>{sh.length}</div>
+                <div className="mono" style={{fontSize:11,color:C.muted}}>{new Date(m.updated_at).toLocaleDateString("en-GB")}</div>
+                <div style={{textAlign:"right"}}><button className="btn btn-ghost btn-xs" onClick={e=>{e.stopPropagation();deleteMap(m.id)}}>Delete</button></div>
               </div>
             );
           })}
         </div>
-      }
+      )}
     </div>
   );
 }
 
-// ══════════════════════════════════════════
-// MAP EDITOR
-// ══════════════════════════════════════════
 function MapEditor({mapId,user}){
-  const[map,setMap]=useState(null);
-  const[stakeholders,setStakeholders]=useState([]);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[tab,setTab]=useState("map");
-  const[selected,setSelected]=useState(null);
-  const[filter,setFilter]=useState(null);
-  const[showForm,setShowForm]=useState(false);
-  const[editing,setEditing]=useState(null);
-
-  // ── BUG 1 FIX: analysisMode is read directly in the generate onClick
-  // so it always captures fresh state (no stale closure) ──
-  const[analysisMode,setAnalysisMode]=useState("strategy");
-  const[analysis,setAnalysis]=useState("");
-  const[analysisLoading,setAnalysisLoading]=useState(false);
-
-  const[draftTarget,setDraftTarget]=useState(null);
-  const[draftText,setDraftText]=useState("");
-  const[draftLoading,setDraftLoading]=useState(false);
-  const[draftContext,setDraftContext]=useState("");
-
-  const[importText,setImportText]=useState("");
-  const[importLoading,setImportLoading]=useState(false);
-  const[importStatus,setImportStatus]=useState(null); // {type:"success"|"warning", msg:"..."}
-
+  const[map,setMap]=useState(null);const[stakeholders,setStakeholders]=useState([]);const[loading,setLoading]=useState(true);const[saving,setSaving]=useState(false);
+  const[tab,setTab]=useState("map");const[selected,setSelected]=useState(null);const[filter,setFilter]=useState(null);const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);
+  const[analysisMode,setAnalysisMode]=useState("strategy");const[analysis,setAnalysis]=useState("");const[analysisLoading,setAnalysisLoading]=useState(false);
+  const[draftTarget,setDraftTarget]=useState(null);const[draftText,setDraftText]=useState("");const[draftLoading,setDraftLoading]=useState(false);const[draftContext,setDraftContext]=useState("");
+  const[importText,setImportText]=useState("");const[importLoading,setImportLoading]=useState(false);const[importStatus,setImportStatus]=useState(null);
   const saveTimer=useRef(null);
 
   useEffect(()=>{loadMap()},[mapId]);
+  const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);}else go("/dashboard");setLoading(false);};
+  const saveStakeholders=useCallback((newList)=>{setStakeholders(newList);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(async()=>{setSaving(true);await sb.from("maps").update({stakeholders:newList,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);},1000);},[mapId]);
+  const addStakeholder=(s)=>{if(editing){saveStakeholders(stakeholders.map(p=>p.id===editing.id?{...s,id:editing.id}:p));setEditing(null);}else{saveStakeholders([...stakeholders,{...s,id:Date.now().toString()}]);}setShowForm(false);};
+  const deleteStakeholder=(id)=>{saveStakeholders(stakeholders.filter(p=>p.id!==id));if(selected===id)setSelected(null);};
+  const importStakeholders=(list)=>{const newOnes=list.map((s,i)=>({...s,id:(Date.now()+i).toString(),quadrant:classify(s.influence??50,s.interest??50)}));saveStakeholders([...stakeholders,...newOnes]);};
 
-  const loadMap=async()=>{
-    setLoading(true);
-    const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();
-    if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);}
-    else go("/dashboard");
-    setLoading(false);
-  };
-
-  const saveStakeholders=useCallback((newList)=>{
-    setStakeholders(newList);
-    if(saveTimer.current)clearTimeout(saveTimer.current);
-    saveTimer.current=setTimeout(async()=>{
-      setSaving(true);
-      await sb.from("maps").update({stakeholders:newList,updated_at:new Date().toISOString()}).eq("id",mapId);
-      setSaving(false);
-    },1000);
-  },[mapId]);
-
-  const addStakeholder=(s)=>{
-    if(editing){
-      saveStakeholders(stakeholders.map(p=>p.id===editing.id?{...s,id:editing.id}:p));
-      setEditing(null);
-    }else{
-      saveStakeholders([...stakeholders,{...s,id:Date.now().toString()}]);
-    }
-    setShowForm(false);
-  };
-
-  const deleteStakeholder=(id)=>{
-    saveStakeholders(stakeholders.filter(p=>p.id!==id));
-    if(selected===id)setSelected(null);
-  };
-
-  const importStakeholders=(list)=>{
-    const newOnes=list.map((s,i)=>({
-      ...s,
-      id:(Date.now()+i).toString(),
-      quadrant:classify(s.influence??50, s.interest??50)
-    }));
-    saveStakeholders([...stakeholders,...newOnes]);
-  };
-
-  // ── BUG 2 FIX: robust AI import with better prompt + better fallback ──
   const runImport=async()=>{
-    setImportLoading(true);
-    setImportStatus(null);
-
-    const aiPrompt=`Extract stakeholders from the text below. Return ONLY a raw JSON array — no markdown, no explanation, no backticks.
-
-Each object must have:
-- "name": string (full name)
-- "role": string (job title or role, empty string if unknown)  
-- "department": string (empty string if unknown)
-- "influence": integer 0-100 (how much power/authority they have over this initiative)
-- "interest": integer 0-100 (how much they care about or are affected by this initiative)
-- "sentiment": one of "champion","supportive","neutral","resistant","blocker"
-- "notes": string (key context, empty string if none)
-
-Scoring rules — DO NOT default to 50 unless truly unknown:
-- CEO/Board/Executive Sponsor → influence 85-95
-- CFO/COO/CTO/VP/Director → influence 70-85
-- Senior Manager → influence 55-70
-- Manager/Team Lead → influence 40-55
-- Individual Contributor → influence 20-40
-- "doesn't care"/"low priority"/"peripheral" → interest 15-30
-- "key stakeholder"/"champion"/"directly impacted"/"depends on this" → interest 75-90
-- "somewhat interested"/"aware" → interest 40-60
-- Words like "skeptical","concerned","worried" → sentiment resistant
-- Words like "loves it","eager","pushing for it" → sentiment supportive or champion
-- Words like "blocking","won't agree","against" → sentiment blocker
-
-Text to parse:
-${importText}`;
-
-    const result=await callAI(aiPrompt,"You are a JSON data extractor. Return ONLY a valid JSON array. No other text.",4096);
-    console.log("[Import] AI raw response:",result);
-
-    // Try to parse AI response
+    setImportLoading(true);setImportStatus(null);
+    const aiPrompt=`Extract stakeholders. Return ONLY a raw JSON array.
+Each object: "name","role","department","influence"(0-100),"interest"(0-100),"sentiment"(champion/supportive/neutral/resistant/blocker),"notes".
+Rules: CEO/Board→inf 85-95, CFO/VP/Director→inf 70-85, Manager→inf 40-55, "doesn't care"→int 15-30, "key stakeholder/champion"→int 75-90, "skeptical/worried"→sentiment resistant, "blocking/against"→sentiment blocker.
+Text:\n${importText}`;
+    const result=await callAI(aiPrompt,"JSON data extractor. Return ONLY valid JSON array.",4096);
     let parsed=null;
-    if(!result.startsWith("AI")){
-      try{
-        const cleaned=result.replace(/```json|```/g,"").trim();
-        const candidate=JSON.parse(cleaned);
-        if(Array.isArray(candidate)&&candidate.length>0){
-          parsed=candidate;
-          console.log("[Import] ✅ AI parsed",parsed.length,"stakeholders");
-        }
-      }catch(e){
-        console.warn("[Import] JSON parse failed:",e.message,"Raw:",result.slice(0,200));
-      }
-    }
-
+    if(!result.startsWith("AI")){try{const c=result.replace(/```json|```/g,"").trim();const cand=JSON.parse(c);if(Array.isArray(cand)&&cand.length>0)parsed=cand;}catch(e){console.warn("[Import] Parse failed:",e.message);}}
     if(parsed){
-      // Clamp and validate
-      const validated=parsed.map((s,i)=>({
-        name:String(s.name||"Stakeholder "+(i+1)).trim(),
-        role:String(s.role||"").trim(),
-        department:String(s.department||"").trim(),
-        influence:Math.min(100,Math.max(0,Math.round(Number(s.influence)||50))),
-        interest:Math.min(100,Math.max(0,Math.round(Number(s.interest)||50))),
-        sentiment:["champion","supportive","neutral","resistant","blocker"].includes(s.sentiment)?s.sentiment:"neutral",
-        notes:String(s.notes||"").trim(),
-      }));
-      importStakeholders(validated);
-      setImportText("");
-      setImportStatus({type:"success",msg:`✅ AI imported ${validated.length} stakeholder${validated.length!==1?"s":""}.`});
+      const v=parsed.map((s,i)=>({name:String(s.name||"Stakeholder "+(i+1)).trim(),role:String(s.role||"").trim(),department:String(s.department||"").trim(),influence:Math.min(100,Math.max(0,Math.round(Number(s.influence)||50))),interest:Math.min(100,Math.max(0,Math.round(Number(s.interest)||50))),sentiment:["champion","supportive","neutral","resistant","blocker"].includes(s.sentiment)?s.sentiment:"neutral",notes:String(s.notes||"").trim()}));
+      importStakeholders(v);setImportText("");setImportStatus({type:"success",msg:`${v.length} stakeholder${v.length!==1?"s":""} imported via AI.`});
     }else{
-      // ── Enhanced fallback parser ──
-      console.warn("[Import] ⚠️ AI failed, using fallback parser");
       const lines=importText.split("\n").map(l=>l.replace(/^\d+[\.)]\s*/,"").trim()).filter(l=>l.length>2);
       const fallback=lines.map((line,i)=>{
-        const lower=line.toLowerCase();
-        const parts=line.split(/\s*[—–\-]\s*/);
-        const nameRaw=(parts[0]||"").trim();
-        const name=nameRaw||"Stakeholder "+(i+1);
-        const roleRaw=(parts[1]||"").split(",")[0].trim();
-
-        // Numeric extraction: "influence: 80" or "influence 80"
-        const infNumMatch=lower.match(/inf(?:luence)?[:\s=]+(\d+)/);
-        const intNumMatch=lower.match(/int(?:erest)?[:\s=]+(\d+)/);
-        let inf=infNumMatch?parseInt(infNumMatch[1]):null;
-        let int=intNumMatch?parseInt(intNumMatch[1]):null;
-
-        // Title-based inference for influence
-        if(inf===null){
-          if(/\b(ceo|cfo|cto|coo|board|executive sponsor|president)\b/.test(lower)) inf=88;
-          else if(/\b(vp|vice president|director|svp|evp)\b/.test(lower)) inf=75;
-          else if(/\bsenior manager\b/.test(lower)) inf=62;
-          else if(/\bmanager\b/.test(lower)) inf=50;
-          else if(/\b(very high influence|very high power|extremely influential)\b/.test(lower)) inf=88;
-          else if(/\b(high influence|high power|very influential|influential)\b/.test(lower)) inf=72;
-          else if(/\b(low influence|little power|peripheral)\b/.test(lower)) inf=22;
-          else inf=50;
-        }
-
-        // Interest keyword inference
-        if(int===null){
-          if(/\b(champion|sponsor|key stakeholder|directly impacted|depends on this)\b/.test(lower)) int=85;
-          else if(/\b(very high interest|very invested|highly engaged)\b/.test(lower)) int=85;
-          else if(/\b(high interest|invested|engaged|cares about)\b/.test(lower)) int=70;
-          else if(/\b(doesn't care|low interest|not interested|low priority|peripheral|monitor only)\b/.test(lower)) int=20;
-          else if(/\b(low interest)\b/.test(lower)) int=25;
-          else int=50;
-        }
-
-        let sent="neutral";
-        if(/\b(champion|loves it|pushing for|eager|enthusiastic)\b/.test(lower)) sent="champion";
-        else if(/\b(supportive|supports|backing|on board|positive)\b/.test(lower)) sent="supportive";
-        else if(/\b(blocking|won't agree|against|refuses|veto)\b/.test(lower)) sent="blocker";
-        else if(/\b(resistant|resistant|skeptical|concerned|worried|unhappy|opposed)\b/.test(lower)) sent="resistant";
-
-        return{
-          name,
-          role:roleRaw,
-          department:"",
-          influence:Math.min(100,Math.max(0,inf)),
-          interest:Math.min(100,Math.max(0,int)),
-          sentiment:sent,
-          notes:parts.slice(1).join(" — ").trim(),
-        };
+        const lower=line.toLowerCase();const parts=line.split(/\s*[—–\-]\s*/);const name=(parts[0]||"").trim()||"Stakeholder "+(i+1);const roleRaw=(parts[1]||"").split(",")[0].trim();
+        const infNum=lower.match(/inf(?:luence)?[:\s=]+(\d+)/);const intNum=lower.match(/int(?:erest)?[:\s=]+(\d+)/);
+        let inf=infNum?parseInt(infNum[1]):null,int=intNum?parseInt(intNum[1]):null;
+        if(inf===null){if(/\b(ceo|cfo|cto|coo|board|executive sponsor)\b/.test(lower))inf=88;else if(/\b(vp|vice president|director|svp)\b/.test(lower))inf=75;else if(/\bmanager\b/.test(lower))inf=50;else if(/\b(high influence|influential)\b/.test(lower))inf=72;else if(/\b(low influence|peripheral)\b/.test(lower))inf=22;else inf=50;}
+        if(int===null){if(/\b(champion|sponsor|key stakeholder|directly impacted)\b/.test(lower))int=85;else if(/\b(high interest|invested|engaged)\b/.test(lower))int=70;else if(/\b(doesn't care|low interest|peripheral)\b/.test(lower))int=20;else int=50;}
+        let sent="neutral";if(/\b(champion|loves it|pushing for)\b/.test(lower))sent="champion";else if(/\b(supportive|supports|backing)\b/.test(lower))sent="supportive";else if(/\b(blocking|against|refuses)\b/.test(lower))sent="blocker";else if(/\b(resistant|skeptical|concerned|worried)\b/.test(lower))sent="resistant";
+        return{name,role:roleRaw,department:"",influence:Math.min(100,Math.max(0,inf)),interest:Math.min(100,Math.max(0,int)),sentiment:sent,notes:parts.slice(1).join(" — ").trim()};
       });
-
-      if(fallback.length>0){
-        importStakeholders(fallback);
-        setImportText("");
-        const flatCount=fallback.filter(s=>s.influence===50&&s.interest===50).length;
-        setImportStatus({
-          type:"warning",
-          msg:`⚠️ AI unavailable — used text parser. ${flatCount>0?`${flatCount} stakeholder${flatCount!==1?"s":""} have default 50/50 scores — adjust manually.`:""} Imported ${fallback.length} total.`
-        });
-      }else{
-        setImportStatus({type:"warning",msg:"Could not parse. Try: Name — Role, description (one per line)"});
-      }
+      if(fallback.length>0){importStakeholders(fallback);setImportText("");setImportStatus({type:"warning",msg:`AI unavailable — text parser used. ${fallback.length} imported. Scores may need adjustment.`});}
+      else setImportStatus({type:"error",msg:"Could not parse. Try: Name — Role, description (one per line)"});
     }
     setImportLoading(false);
   };
 
-  if(loading)return<div style={{textAlign:"center",padding:80,color:C.dim}}>Loading map...</div>;
-  if(!map)return<div style={{textAlign:"center",padding:80,color:C.dim}}>Map not found.</div>;
+  const ANALYSIS_PROMPTS={
+    strategy:"Analyze this stakeholder landscape:\n1. Top 3 engagement priorities\n2. Key risks from resistant stakeholders\n3. Coalition opportunities\n4. 3 concrete quick wins for next 30 days\nUse **bold** for key names.",
+    comms:"Create a communication plan by quadrant:\n**Manage Closely** — weekly touchpoints, 1:1s\n**Keep Satisfied** — executive briefings, milestone updates\n**Keep Informed** — newsletters, town halls\n**Monitor** — periodic awareness\nFor each stakeholder: channel, frequency, message framing.",
+    risks:"Identify stakeholder risks:\n1. **Blockers** — who could stop this\n2. **Silent resistors**\n3. **Dependency gaps**\n4. **Power dynamics**\n5. **Mitigations** — one action per risk\nUse **bold** for key names.",
+  };
+
+  const generateAnalysis=async()=>{
+    setAnalysisLoading(true);setAnalysis("");
+    const mode=analysisMode;
+    const summary=filtered.map(s=>`- ${s.name} (${s.role}${s.department?", "+s.department:""}): Influence=${s.influence}%, Interest=${s.interest}%, Sentiment=${s.sentiment}, Quadrant=${s.quadrant}${s.notes?", Notes: "+s.notes:""}`).join("\n");
+    const result=await callAI(`Stakeholders:\n${summary}\n\n${ANALYSIS_PROMPTS[mode]}`,"Expert stakeholder management consultant. Practical, specific, actionable. Short paragraphs.",2000);
+    setAnalysis(result);setAnalysisLoading(false);
+  };
+
+  if(loading)return<div style={{textAlign:"center",padding:80,color:C.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>Loading...</div>;
+  if(!map)return<div style={{textAlign:"center",padding:80}}>Map not found.</div>;
 
   const filtered=filter?stakeholders.filter(s=>s.quadrant===filter):stakeholders;
   const mt=MAP_TYPES[map.type]||MAP_TYPES.project;
   const counts={"Manage Closely":0,"Keep Satisfied":0,"Keep Informed":0,"Monitor":0};
   stakeholders.forEach(s=>counts[s.quadrant]=(counts[s.quadrant]||0)+1);
 
-  // ── BUG 1 FIX: analysis prompts defined outside onClick so they're readable,
-  // but analysisMode is captured fresh at click time because it's in scope ──
-  const ANALYSIS_PROMPTS={
-    strategy:"Analyze this stakeholder landscape and provide:\n1. Top 3 engagement priorities (who to focus on first and why)\n2. Key risks from misaligned or resistant stakeholders\n3. Coalition opportunities (who can influence whom)\n4. 3 concrete quick wins for the next 30 days\n\nBe specific and actionable. Use **bold** for key names and actions.",
-    comms:"Create a communication plan organized by quadrant:\n\n**Manage Closely** (high inf + high int): Weekly touchpoints, 1:1 meetings, co-creation opportunities\n**Keep Satisfied** (high inf + low int): Executive briefings, milestone updates, risk escalation path\n**Keep Informed** (low inf + high int): Regular newsletters, town halls, feedback channels\n**Monitor** (low inf + low int): Periodic awareness emails, passive updates\n\nFor each stakeholder, suggest: channel, frequency, message framing, and owner. Use **bold** for names.",
-    risks:"Identify and analyze stakeholder risks:\n\n1. **Top blockers** — who could stop or delay this initiative and how\n2. **Silent resistors** — who seems neutral but may undermine quietly\n3. **Dependency gaps** — critical roles missing from the map\n4. **Power dynamics** — conflicting interests between high-influence stakeholders\n5. **Mitigation actions** — one concrete action per risk\n\nBe direct and specific. Use **bold** for risk names and key stakeholders.",
-  };
-
-  const generateAnalysis=async()=>{
-    setAnalysisLoading(true);
-    setAnalysis("");
-    const currentMode=analysisMode; // capture at call time
-    const summary=filtered.map(s=>`- ${s.name} (${s.role}${s.department?", "+s.department:""}): Influence=${s.influence}%, Interest=${s.interest}%, Sentiment=${s.sentiment}, Quadrant=${s.quadrant}${s.notes?", Notes: "+s.notes:""}`).join("\n");
-    const prompt=`Stakeholder landscape for analysis:\n${summary}\n\n${ANALYSIS_PROMPTS[currentMode]||ANALYSIS_PROMPTS.strategy}`;
-    console.log("[Analysis] Mode:",currentMode,"Stakeholders:",filtered.length);
-    const result=await callAI(prompt,"You are an expert stakeholder management consultant. Give practical, specific, actionable advice. Use short paragraphs. **bold** key terms and names.",2000);
-    setAnalysis(result);
-    setAnalysisLoading(false);
-  };
-
   return(
     <div className="container" style={{padding:"16px 24px 60px"}}>
-      {/* Map header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${C.hairline}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <button className="btn btn-g btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
-          <span className="badge" style={{background:mt.color+"18",color:mt.color}}>{mt.icon} {mt.label}</span>
-          <h2 style={{fontSize:18,fontWeight:700}}>{map.name}</h2>
-          {saving&&<span style={{fontSize:11,color:C.dim}}>Saving...</span>}
+          <button className="btn btn-ghost btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
+          <span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span>
+          <h2 style={{fontSize:16,fontWeight:600,letterSpacing:"-0.02em"}}>{map.name}</h2>
+          {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
         </div>
-        <button className="btn btn-p btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add</button>
+        <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
       </div>
 
       {/* Stat cards */}
       {stakeholders.length>0&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:16}}>
-          <div onClick={()=>setFilter(null)} style={{background:!filter?C.surface2:C.card,borderRadius:10,padding:12,border:`1px solid ${!filter?C.accent:C.border}`,textAlign:"center",cursor:"pointer",boxShadow:!filter?`0 0 10px ${C.accentG}`:"none"}}>
-            <div style={{fontSize:22,fontWeight:800,color:C.accent}}>{stakeholders.length}</div>
-            <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",marginTop:2}}>See All</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:1,marginBottom:16,border:`1px solid ${C.hairline}`}}>
+          <div onClick={()=>setFilter(null)} style={{padding:"12px 16px",background:!filter?C.ink:C.bg,cursor:"pointer",transition:"background .1s"}}>
+            <div className="mono" style={{fontSize:22,fontWeight:600,color:!filter?C.bg:C.ink,lineHeight:1}}>{stakeholders.length}</div>
+            <div className="mono" style={{fontSize:9,color:!filter?C.hairline:C.muted,marginTop:4,letterSpacing:".06em"}}>ALL</div>
           </div>
           {Object.entries(counts).map(([q,c])=>{
-            const m=QUAD[q];const active=filter===q;
-            return(<div key={q} onClick={()=>setFilter(active?null:q)} style={{background:active?C.surface2:C.card,borderRadius:10,padding:12,border:`1px solid ${active?m.color:C.border}`,textAlign:"center",cursor:"pointer",boxShadow:active?`0 0 10px ${m.glow}`:"none"}}>
-              <div style={{fontSize:22,fontWeight:800,color:m.color}}>{c}</div>
-              <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",marginTop:2}}>{q}</div>
-            </div>);
+            const active=filter===q;
+            return(
+              <div key={q} onClick={()=>setFilter(active?null:q)} style={{padding:"12px 16px",background:active?C.ink:C.bg,borderLeft:`1px solid ${C.hairline}`,cursor:"pointer",transition:"background .1s"}}>
+                <div className="mono" style={{fontSize:22,fontWeight:600,color:active?C.bg:QUAD[q].color,lineHeight:1}}>{c}</div>
+                <div className="mono" style={{fontSize:9,color:active?C.hairline:C.muted,marginTop:4,letterSpacing:".06em",lineHeight:1.3,whiteSpace:"pre-line"}}>{q.toUpperCase()}</div>
+              </div>
+            );
           })}
         </div>
       )}
 
-      {/* Tabs — BUG 4 FIX: added Export tab */}
-      <div style={{display:"flex",gap:2,background:C.surface,borderRadius:10,padding:3,marginBottom:16,flexWrap:"wrap"}}>
-        {[{id:"map",l:"🗺️ Map"},{id:"analysis",l:"🤖 AI Analysis"},{id:"messages",l:"✉️ Messages"},{id:"import",l:"⚡ Import"},{id:"export",l:"📤 Export"}].map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"8px 16px",borderRadius:8,border:"none",background:tab===t.id?C.surface2:"transparent",color:tab===t.id?C.text:C.muted,fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{t.l}</button>
+      {/* Tabs */}
+      <div style={{display:"flex",gap:0,borderBottom:`1px solid ${C.hairline}`,marginBottom:16}}>
+        {[{id:"map",l:"Map"},{id:"analysis",l:"AI analysis"},{id:"messages",l:"Messages"},{id:"import",l:"Import"},{id:"export",l:"Export"}].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"8px 16px",border:"none",background:"transparent",borderBottom:tab===t.id?`2px solid ${C.ink}`:"2px solid transparent",color:tab===t.id?C.ink:C.muted,fontSize:12,fontWeight:tab===t.id?600:400,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",marginBottom:-1}}>{t.l}</button>
         ))}
       </div>
 
-      {/* Stakeholder Form */}
       {showForm&&<StakeholderForm editing={editing} onAdd={addStakeholder} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}
 
-      {/* ── MAP TAB ── */}
+      {/* MAP TAB */}
       {tab==="map"&&(
-        <div style={{display:"grid",gridTemplateColumns:stakeholders.length>0?"1fr 320px":"1fr",gap:16}}>
-          <div className="card">
-            <div style={{fontSize:14,fontWeight:700,marginBottom:12}}>Influence / Interest Matrix</div>
-            <div style={{position:"relative",width:"100%",aspectRatio:"1.4/1",background:C.surface,borderRadius:10,overflow:"hidden"}}>
-              <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:C.border}}/>
-              <div style={{position:"absolute",top:"50%",left:0,right:0,height:1,background:C.border}}/>
-              {[{l:"Keep Satisfied",x:"25%",y:"25%"},{l:"Manage Closely",x:"75%",y:"25%"},{l:"Monitor",x:"25%",y:"75%"},{l:"Keep Informed",x:"75%",y:"75%"}].map(q=>(
-                <div key={q.l} style={{position:"absolute",left:q.x,top:q.y,transform:"translate(-50%,-50%)",fontSize:11,fontWeight:600,color:QUAD[q.l].color,opacity:.4,textTransform:"uppercase",letterSpacing:".06em",pointerEvents:"none"}}>{q.l}</div>
+        <div style={{display:"grid",gridTemplateColumns:stakeholders.length>0?"1fr 300px":"1fr",gap:1,border:`1px solid ${C.hairline}`}}>
+          <div style={{padding:20}}>
+            <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em",marginBottom:12}}>INFLUENCE / INTEREST MATRIX</div>
+            <div style={{position:"relative",width:"100%",aspectRatio:"1.5/1",background:C.surface,overflow:"hidden"}}>
+              <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:C.hairline}}/>
+              <div style={{position:"absolute",top:"50%",left:0,right:0,height:1,background:C.hairline}}/>
+              {[{l:"Keep Satisfied",x:"25%",y:"22%"},{l:"Manage Closely",x:"75%",y:"22%"},{l:"Monitor",x:"25%",y:"78%"},{l:"Keep Informed",x:"75%",y:"78%"}].map(q=>(
+                <div key={q.l} className="mono" style={{position:"absolute",left:q.x,top:q.y,transform:"translate(-50%,-50%)",fontSize:8,fontWeight:500,color:QUAD[q.l].color,opacity:.6,textTransform:"uppercase",letterSpacing:".06em",pointerEvents:"none",textAlign:"center"}}>{q.l}</div>
               ))}
               {stakeholders.map(s=>{
-                const x=5+(s.interest/100)*90,y=95-(s.influence/100)*90;
+                const x=8+(s.interest/100)*84,y=92-(s.influence/100)*84;
                 const isSel=selected===s.id,isDim=filter&&s.quadrant!==filter;
-                const col=SENT_COLORS[s.sentiment]||C.accent;
+                const col=SENT_COLORS[s.sentiment]||C.ink;
                 return(
-                  <div key={s.id} onClick={()=>setSelected(s.id)} style={{position:"absolute",left:x+"%",top:y+"%",transform:"translate(-50%,-50%)",cursor:"pointer",zIndex:isSel?10:1,opacity:isDim?.15:1,transition:"opacity .3s"}}>
-                    <div style={{width:isSel?18:14,height:isSel?18:14,borderRadius:"50%",background:col,boxShadow:isSel?`0 0 16px ${col}88`:`0 0 6px ${col}44`,border:isSel?"2px solid #fff":"2px solid transparent"}}/>
-                    <div style={{position:"absolute",top:-22,left:"50%",transform:"translateX(-50%)",whiteSpace:"nowrap",fontSize:10,fontWeight:600,color:isSel?"#fff":C.muted,background:isSel?C.surface2:"rgba(11,15,26,0.75)",padding:"2px 5px",borderRadius:4,pointerEvents:"none"}}>{s.name.split(" ")[0]}</div>
+                  <div key={s.id} onClick={()=>setSelected(s.id)} style={{position:"absolute",left:x+"%",top:y+"%",transform:"translate(-50%,-50%)",cursor:"pointer",zIndex:isSel?10:1,opacity:isDim?.12:1,transition:"opacity .2s"}}>
+                    <div style={{width:isSel?14:10,height:isSel?14:10,borderRadius:"50%",background:col,border:isSel?`2px solid ${C.ink}`:"2px solid transparent",transition:"all .15s"}}/>
+                    <div className="mono" style={{position:"absolute",top:-16,left:"50%",transform:"translateX(-50%)",whiteSpace:"nowrap",fontSize:9,fontWeight:500,background:isSel?C.ink:"transparent",color:isSel?C.bg:C.ink2,padding:isSel?"1px 5px":0,pointerEvents:"none"}}>{s.name.split(" ")[0]}</div>
                   </div>
                 );
               })}
-              {stakeholders.length===0&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:C.dim,fontSize:13,fontStyle:"italic"}}>Add stakeholders to see them here</div>}
+              {stakeholders.length===0&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:12,fontStyle:"italic"}}>Add stakeholders to see them plotted here</div>}
             </div>
             <div style={{display:"flex",gap:12,marginTop:10,flexWrap:"wrap"}}>
-              {Object.entries(SENT_COLORS).map(([k,c])=>(<div key={k} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:"50%",background:c}}/><span style={{fontSize:11,color:C.muted,textTransform:"capitalize"}}>{k}</span></div>))}
+              {Object.entries(SENT_COLORS).map(([k,c])=>(
+                <div key={k} style={{display:"flex",alignItems:"center",gap:4}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:c}}/>
+                  <span className="mono" style={{fontSize:9,color:C.muted,textTransform:"uppercase",letterSpacing:".04em"}}>{k}</span>
+                </div>
+              ))}
             </div>
           </div>
           {stakeholders.length>0&&(
-            <div>
-              {filter&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <span style={{fontSize:13,fontWeight:600,color:QUAD[filter].color}}>{QUAD[filter].icon} {filter} ({filtered.length})</span>
-                <button className="btn btn-g btn-sm" onClick={()=>setFilter(null)}>✕ Clear</button>
-              </div>}
-              <div style={{display:"flex",flexDirection:"column",gap:8,maxHeight:520,overflowY:"auto"}}>
-                {filtered.map(s=>{const m=QUAD[s.quadrant];return(
-                  <div key={s.id} onClick={()=>setSelected(s.id)} className="card" style={{padding:14,cursor:"pointer",borderColor:selected===s.id?C.accent:C.border,boxShadow:selected===s.id?`0 0 12px ${C.accentG}`:"none",background:selected===s.id?C.surface2:C.card}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div><div style={{fontSize:14,fontWeight:700}}>{s.name}</div><div style={{fontSize:12,color:C.muted}}>{s.role}{s.department?" · "+s.department:""}</div></div>
-                      <div style={{display:"flex",gap:4}}>
-                        <button className="btn btn-g btn-sm" onClick={e=>{e.stopPropagation();setEditing(s);setShowForm(true)}}>✏️</button>
-                        <button className="btn btn-g btn-sm" onClick={e=>{e.stopPropagation();deleteStakeholder(s.id)}}>🗑️</button>
+            <div style={{borderLeft:`1px solid ${C.hairline}`}}>
+              {filter&&(
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",borderBottom:`1px solid ${C.hairline}`,background:C.surface}}>
+                  <span className="mono" style={{fontSize:9,color:QUAD[filter].color,letterSpacing:".06em"}}>{filter.toUpperCase()} ({filtered.length})</span>
+                  <button className="btn btn-ghost btn-xs" onClick={()=>setFilter(null)}>Clear</button>
+                </div>
+              )}
+              <div style={{maxHeight:480,overflowY:"auto"}}>
+                {filtered.map((s,i)=>{
+                  const q=QUAD[s.quadrant];
+                  return(
+                    <div key={s.id} onClick={()=>setSelected(s.id)} style={{padding:"12px 14px",borderBottom:i<filtered.length-1?`1px solid ${C.hairline}`:"none",cursor:"pointer",background:selected===s.id?C.surface:"transparent",transition:"background .1s"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                        <div><div style={{fontSize:13,fontWeight:500,marginBottom:2}}>{s.name}</div><div className="mono" style={{fontSize:10,color:C.muted}}>{s.role}{s.department?" · "+s.department:""}</div></div>
+                        <div style={{display:"flex",gap:4}}>
+                          <button className="btn btn-ghost btn-xs" onClick={e=>{e.stopPropagation();setEditing(s);setShowForm(true)}}>Edit</button>
+                          <button className="btn btn-ghost btn-xs" onClick={e=>{e.stopPropagation();deleteStakeholder(s.id)}}>Del</button>
+                        </div>
                       </div>
+                      <div style={{display:"flex",gap:6,marginTop:8,alignItems:"center",flexWrap:"wrap"}}>
+                        <span className="badge" style={{borderColor:q.color,color:q.color,fontSize:9}}>{s.quadrant}</span>
+                        <span className="mono" style={{fontSize:9,color:SENT_COLORS[s.sentiment]||C.muted}}>{s.sentiment}</span>
+                        <span className="mono" style={{fontSize:9,color:C.muted,marginLeft:"auto"}}>I:{s.influence}% · Int:{s.interest}%</span>
+                      </div>
+                      {s.notes&&<div className="mono" style={{fontSize:10,color:C.muted,marginTop:6,lineHeight:1.5}}>{s.notes}</div>}
                     </div>
-                    <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
-                      <span className="badge" style={{background:m.glow,color:m.color}}>{m.icon} {s.quadrant}</span>
-                      <span style={{fontSize:12}}>{SENT_EMOJI[s.sentiment]} {s.sentiment}</span>
-                    </div>
-                    {s.notes&&<div style={{fontSize:12,color:C.dim,marginTop:6,lineHeight:1.4}}>{s.notes}</div>}
-                  </div>
-                )})}
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── AI ANALYSIS TAB — BUG 1 FIX ── */}
+      {/* ANALYSIS TAB */}
       {tab==="analysis"&&(
         <div className="card">
-          <div style={{fontSize:14,fontWeight:700,marginBottom:14}}>🤖 AI Analysis</div>
-          {/* Mode selector — active state clearly visible */}
-          <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-            {[{k:"strategy",l:"🎯 Strategy Brief"},{k:"comms",l:"📣 Comms Plan"},{k:"risks",l:"⚠️ Risk Analysis"}].map(m=>(
-              <button key={m.k} onClick={()=>{
-                setAnalysisMode(m.k);
-                setAnalysis(""); // clear old result when switching mode
-              }} style={{
-                padding:"8px 14px",
-                borderRadius:8,
-                border:`2px solid ${analysisMode===m.k?C.accent:C.border}`,
-                background:analysisMode===m.k?C.accentG:"transparent",
-                color:analysisMode===m.k?C.accent:C.muted,
-                fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit",
-                transition:"all .15s"
-              }}>{m.l}</button>
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:14}}>AI ANALYSIS</div>
+          <div style={{display:"flex",gap:0,marginBottom:14,border:`1px solid ${C.hairline}`}}>
+            {[{k:"strategy",l:"Strategy brief"},{k:"comms",l:"Comms plan"},{k:"risks",l:"Risk analysis"}].map((m,i)=>(
+              <button key={m.k} onClick={()=>{setAnalysisMode(m.k);setAnalysis("");}} style={{flex:1,padding:"8px 12px",border:"none",borderRight:i<2?`1px solid ${C.hairline}`:"none",background:analysisMode===m.k?C.ink:C.bg,color:analysisMode===m.k?C.bg:C.ink2,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif"}}>{m.l}</button>
             ))}
           </div>
-          {/* Mode description so user knows what they'll get */}
-          <div style={{fontSize:12,color:C.dim,marginBottom:14,padding:"8px 12px",background:C.surface,borderRadius:8}}>
+          <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:14,padding:"8px 12px",background:C.surface,borderLeft:`2px solid ${C.hairline}`}}>
             {analysisMode==="strategy"&&"Engagement priorities, coalition opportunities, and 30-day quick wins."}
             {analysisMode==="comms"&&"Channel, frequency, and message framing per quadrant and stakeholder."}
             {analysisMode==="risks"&&"Blockers, silent resistors, dependency gaps, and mitigation actions."}
           </div>
-          <button className="btn btn-p btn-block" disabled={analysisLoading||filtered.length===0} style={{marginBottom:14}} onClick={generateAnalysis}>
-            {analysisLoading?"Analyzing...":"Generate "+{strategy:"Strategy Brief",comms:"Comms Plan",risks:"Risk Analysis"}[analysisMode]}
+          <button className="btn btn-fill btn-block" disabled={analysisLoading||filtered.length===0} style={{marginBottom:14}} onClick={generateAnalysis}>
+            {analysisLoading?"Analyzing...":"Generate "+{strategy:"strategy brief",comms:"comms plan",risks:"risk analysis"}[analysisMode]}
           </button>
           {analysis&&(
-            <div id="analysis-output" style={{padding:16,borderRadius:10,background:C.surface,border:`1px solid ${C.border}`,fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap",maxHeight:500,overflowY:"auto"}}
-              dangerouslySetInnerHTML={{__html:analysis.replace(/\*\*(.*?)\*\*/g,'<strong style="color:#4F8BFF">$1</strong>')}}/>
+            <div id="analysis-output" style={{padding:16,background:C.surface,border:`1px solid ${C.hairline}`,fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap",maxHeight:500,overflowY:"auto"}}
+              dangerouslySetInnerHTML={{__html:analysis.replace(/\*\*(.*?)\*\*/g,`<strong style="color:${C.ink};font-weight:600">$1</strong>`)}}/>
           )}
-          {filtered.length===0&&<div style={{fontSize:13,color:C.dim,textAlign:"center",padding:20,fontStyle:"italic"}}>Add stakeholders first</div>}
+          {filtered.length===0&&<div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:20}}>Add stakeholders first</div>}
         </div>
       )}
 
-      {/* ── MESSAGES TAB ── */}
+      {/* MESSAGES TAB */}
       {tab==="messages"&&(
         <div className="card">
-          <div style={{fontSize:14,fontWeight:700,marginBottom:14}}>✉️ Draft Messages</div>
-          <div style={{marginBottom:14}}><label className="label">Initiative context (optional)</label><input className="inp" value={draftContext} onChange={e=>setDraftContext(e.target.value)} placeholder="e.g., ERP migration, agile rollout..."/></div>
-          {filtered.length===0?<div style={{fontSize:13,color:C.dim,textAlign:"center",padding:20}}>Add stakeholders first</div>:
-           filtered.map(s=>(
-            <div key={s.id} style={{marginBottom:8}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",borderRadius:8,background:C.surface,border:`1px solid ${C.border}`}}>
-                <div><span style={{fontSize:13,fontWeight:600}}>{s.name}</span><span style={{fontSize:11,color:C.muted,marginLeft:8}}>{CADENCE[s.quadrant]}</span></div>
-                <button className="btn btn-p btn-sm" disabled={draftLoading} onClick={async()=>{
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:14}}>DRAFT MESSAGES</div>
+          <div style={{marginBottom:14}}><label className="label">Initiative context (optional)</label><input className="inp" value={draftContext} onChange={e=>setDraftContext(e.target.value)} placeholder="e.g. ERP migration, agile rollout..."/></div>
+          {filtered.length===0?(<div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:20}}>Add stakeholders first</div>)
+          :filtered.map(s=>(
+            <div key={s.id} style={{marginBottom:1}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:C.surface,border:`1px solid ${C.hairline}`}}>
+                <div><span style={{fontSize:13,fontWeight:500}}>{s.name}</span><span className="mono" style={{fontSize:10,color:C.muted,marginLeft:10}}>{CADENCE[s.quadrant]}</span></div>
+                <button className="btn btn-fill btn-sm" disabled={draftLoading} onClick={async()=>{
                   setDraftTarget(s);setDraftText("");setDraftLoading(true);
-                  const prompt=`Write a professional stakeholder communication for:
-Name: ${s.name}
-Role: ${s.role}${s.department?", "+s.department:""}
-Influence: ${s.influence}%, Interest: ${s.interest}%
-Sentiment: ${s.sentiment}
-Quadrant: ${s.quadrant} (engagement approach: ${QUAD[s.quadrant].strategy})
-Notes: ${s.notes||"None"}
-${draftContext?"Initiative context: "+draftContext:""}
-
-Write a ${CADENCE[s.quadrant].toLowerCase()} message appropriate for their quadrant and sentiment.
-- Under 120 words
-- Professional and warm
-- No placeholder brackets like [NAME] — use the actual name
-- Match tone to sentiment (more reassuring for resistant, more collaborative for champions)`;
-                  setDraftText(await callAI(prompt,"You are an expert stakeholder communicator. Write natural, professional messages. Never use placeholder brackets.",1500));
+                  const prompt=`Write a professional stakeholder message for:\nName: ${s.name} | Role: ${s.role}${s.department?", "+s.department:""}\nInfluence: ${s.influence}% | Interest: ${s.interest}% | Sentiment: ${s.sentiment}\nQuadrant: ${s.quadrant} — ${CADENCE[s.quadrant]}\nNotes: ${s.notes||"None"}\n${draftContext?"Context: "+draftContext:""}\n\nUnder 120 words. Professional, warm. No placeholder brackets. Use their actual name.`;
+                  setDraftText(await callAI(prompt,"Expert stakeholder communicator. Never use placeholder brackets.",1500));
                   setDraftLoading(false);
                 }}>{draftLoading&&draftTarget?.id===s.id?"Writing...":"Draft"}</button>
               </div>
               {draftTarget?.id===s.id&&draftText&&(
-                <div style={{marginTop:6,padding:14,borderRadius:8,background:C.surface,border:`1px solid ${QUAD[s.quadrant].color}33`,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap"}}>
+                <div style={{padding:14,background:C.bg,border:`1px solid ${C.hairline}`,borderTop:"none",fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap"}}>
                   {draftText}
-                  <div style={{marginTop:10,display:"flex",gap:8}}>
-                    <button className="btn btn-s btn-sm" onClick={()=>{navigator.clipboard.writeText(draftText)}}>📋 Copy</button>
-                  </div>
+                  <div style={{marginTop:10}}><button className="btn btn-ghost btn-xs" onClick={()=>navigator.clipboard.writeText(draftText)}>Copy text</button></div>
                 </div>
               )}
             </div>
@@ -852,203 +609,134 @@ Write a ${CADENCE[s.quadrant].toLowerCase()} message appropriate for their quadr
         </div>
       )}
 
-      {/* ── IMPORT TAB — BUG 2 FIX ── */}
+      {/* IMPORT TAB */}
       {tab==="import"&&(
         <div className="card">
-          <div style={{fontSize:14,fontWeight:700,marginBottom:6}}>⚡ Bulk Import</div>
-          <p style={{fontSize:12,color:C.muted,marginBottom:12}}>Paste a list in any format — AI parses names, roles, and estimates influence/interest scores automatically.</p>
-          <div style={{fontSize:11,color:C.dim,marginBottom:10,padding:"8px 12px",background:C.surface,borderRadius:8,lineHeight:1.6}}>
-            <strong style={{color:C.muted}}>Tip:</strong> Include context for better scores. Examples:<br/>
-            <span style={{color:C.dim}}>• "Jane Smith — CFO, skeptical about budget impact"</span><br/>
-            <span style={{color:C.dim}}>• "Bob Chen — VP Engineering, champion, drives technical decisions"</span><br/>
-            <span style={{color:C.dim}}>• "Maria Lopez — Team Lead, influence 60, interest 80, supportive"</span>
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:6}}>BULK IMPORT</div>
+          <p style={{fontSize:12,color:C.ink2,marginBottom:12}}>Paste a list in any format — AI parses names, roles, and estimates scores.</p>
+          <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:12,padding:"8px 12px",background:C.surface,borderLeft:`2px solid ${C.hairline}`,lineHeight:1.7}}>
+            Include context for better scores.<br/>
+            "Jane Smith — CFO, skeptical about budget impact"<br/>
+            "Bob Chen — VP Engineering, champion of this initiative"
           </div>
-          <textarea className="inp" value={importText} onChange={e=>setImportText(e.target.value)} placeholder={"Jane Smith — CFO, skeptical about budget impact\nBob Chen — VP Engineering, champion of this initiative\nMaria Lopez — Project Manager, directly impacted, highly interested"} style={{minHeight:140,resize:"vertical"}}/>
+          <textarea className="inp" value={importText} onChange={e=>setImportText(e.target.value)} placeholder={"Jane Smith — CFO, skeptical about budget impact\nBob Chen — VP Engineering, champion\nMaria Lopez — Project Manager, directly impacted"} style={{minHeight:140,resize:"vertical"}}/>
           {importStatus&&(
-            <div style={{marginTop:8,padding:"8px 12px",borderRadius:8,background:importStatus.type==="success"?C.greenG:C.warmG,color:importStatus.type==="success"?C.green:C.warm,fontSize:13}}>
+            <div style={{marginTop:8,padding:"8px 12px",background:importStatus.type==="success"?C.mossG:C.signalG,border:`1px solid ${importStatus.type==="success"?C.moss:C.signal}`,color:importStatus.type==="success"?C.moss:C.signal,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>
               {importStatus.msg}
             </div>
           )}
-          <button className="btn btn-p btn-block" style={{marginTop:10}} disabled={!importText.trim()||importLoading} onClick={runImport}>
+          <button className="btn btn-fill btn-block" style={{marginTop:10}} disabled={!importText.trim()||importLoading} onClick={runImport}>
             {importLoading?"Parsing with AI...":"Import with AI"}
           </button>
         </div>
       )}
 
-      {/* ── EXPORT TAB — BUG 4 FIX ── */}
+      {/* EXPORT TAB */}
       {tab==="export"&&(
         <div className="card">
-          <div style={{fontSize:14,fontWeight:700,marginBottom:6}}>📤 Export</div>
-          <p style={{fontSize:12,color:C.muted,marginBottom:20}}>Download your stakeholder map in different formats for reports and presentations.</p>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-            {/* PDF Report */}
-            <div style={{padding:16,borderRadius:10,background:C.surface,border:`1px solid ${C.border}`}}>
-              <div style={{fontSize:13,fontWeight:700,marginBottom:4}}>📄 PDF Report</div>
-              <div style={{fontSize:12,color:C.muted,marginBottom:10}}>Opens a print dialog with a formatted stakeholder report. Generate an AI analysis first for best results.</div>
-              <button className="btn btn-p btn-sm" onClick={()=>{
-                const analysisHTML=document.getElementById("analysis-output")?.innerHTML||"<p><em>No analysis generated yet. Go to AI Analysis tab and generate a report first.</em></p>";
-                const rows=stakeholders.map(s=>`<tr><td>${s.name}</td><td>${s.role||""}</td><td>${s.department||""}</td><td>${s.quadrant}</td><td>${s.influence}%</td><td>${s.interest}%</td><td>${s.sentiment}</td><td>${s.notes||""}</td></tr>`).join("");
-                const win=window.open("","_blank");
-                win.document.write(`<!DOCTYPE html><html><head><title>${map.name} — Stakeholder Report</title>
-<style>
-  body{font-family:system-ui,sans-serif;padding:48px;max-width:900px;margin:0 auto;color:#1a1a2e}
-  h1{font-size:28px;margin-bottom:4px}
-  .sub{color:#666;font-size:14px;margin-bottom:32px}
-  h2{font-size:18px;margin:32px 0 12px;padding-bottom:6px;border-bottom:2px solid #eee}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;padding:8px 10px;background:#f5f5f5;font-weight:600}
-  td{padding:8px 10px;border-bottom:1px solid #eee}
-  .analysis{font-size:14px;line-height:1.7;white-space:pre-wrap}
-  @media print{body{padding:20px}}
-</style></head><body>
-<h1>${map.name}</h1>
-<div class="sub">Stakeholder Map · ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div>
-<h2>Stakeholder List (${stakeholders.length})</h2>
-<table><thead><tr><th>Name</th><th>Role</th><th>Dept</th><th>Quadrant</th><th>Influence</th><th>Interest</th><th>Sentiment</th><th>Notes</th></tr></thead>
-<tbody>${rows}</tbody></table>
-${analysis?`<h2>AI Analysis</h2><div class="analysis">${analysisHTML}</div>`:""}
-</body></html>`);
-                win.document.close();
-                setTimeout(()=>win.print(),500);
-              }}>📄 Print / Save as PDF</button>
+          <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:20}}>EXPORT</div>
+          <div style={{display:"flex",flexDirection:"column",gap:1,border:`1px solid ${C.hairline}`}}>
+            <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.hairline}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:13,fontWeight:500,marginBottom:2}}>PDF report</div><div className="mono" style={{fontSize:10,color:C.muted}}>Opens print dialog — stakeholder table + AI analysis</div></div>
+                <button className="btn btn-fill btn-sm" onClick={()=>{
+                  const analysisHTML=document.getElementById("analysis-output")?.innerHTML||"<p><em>Generate an AI analysis first for a richer report.</em></p>";
+                  const rows=stakeholders.map(s=>`<tr><td>${s.name}</td><td>${s.role||""}</td><td>${s.department||""}</td><td>${s.quadrant}</td><td>${s.influence}%</td><td>${s.interest}%</td><td>${s.sentiment}</td><td>${s.notes||""}</td></tr>`).join("");
+                  const win=window.open("","_blank");
+                  win.document.write(`<!DOCTYPE html><html><head><title>${map.name}</title><style>body{font-family:'Inter Tight',system-ui,sans-serif;padding:48px;max-width:900px;margin:0 auto;color:#0A0A0A;background:#F2F2EE}h1{font-size:22px;font-weight:600;margin-bottom:4px;letter-spacing:-0.02em}.meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:#7A7A75;margin-bottom:32px}h2{font-size:11px;font-weight:600;margin:32px 0 10px;text-transform:uppercase;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;border-bottom:1px solid #C7C7C0;padding-bottom:6px}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;padding:7px 10px;background:#E9E7DF;font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-family:'JetBrains Mono',monospace}td{padding:8px 10px;border-bottom:1px solid #E9E7DF}.analysis{font-size:13px;line-height:1.7;white-space:pre-wrap}@media print{body{padding:20px}}</style></head><body><h1>${map.name}</h1><div class="meta">${mt.code} · ${new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}</div><h2>Stakeholders (${stakeholders.length})</h2><table><thead><tr><th>Name</th><th>Role</th><th>Dept</th><th>Quadrant</th><th>Influence</th><th>Interest</th><th>Sentiment</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table>${analysis?`<h2>AI Analysis</h2><div class="analysis">${analysisHTML}</div>`:""}</body></html>`);
+                  win.document.close();setTimeout(()=>win.print(),500);
+                }}>Print / Save PDF</button>
+              </div>
             </div>
-
-            {/* CSV */}
-            <div style={{padding:16,borderRadius:10,background:C.surface,border:`1px solid ${C.border}`}}>
-              <div style={{fontSize:13,fontWeight:700,marginBottom:4}}>📊 CSV Spreadsheet</div>
-              <div style={{fontSize:12,color:C.muted,marginBottom:10}}>Download all stakeholder data as a CSV file. Open in Excel, Google Sheets, or any spreadsheet tool.</div>
-              <button className="btn btn-p btn-sm" onClick={()=>{
-                const headers=["Name","Role","Department","Quadrant","Influence","Interest","Sentiment","Notes"];
-                const rows=stakeholders.map(s=>[s.name,s.role||"",s.department||"",s.quadrant,s.influence,s.interest,s.sentiment,s.notes||""].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
-                const csv=[headers.join(","),...rows].join("\n");
-                const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-                const url=URL.createObjectURL(blob);
-                const a=document.createElement("a");
-                a.href=url;a.download=`${map.name.replace(/[^a-z0-9]/gi,"_")}_stakeholders.csv`;
-                document.body.appendChild(a);a.click();
-                document.body.removeChild(a);URL.revokeObjectURL(url);
-              }}>📊 Download CSV</button>
+            <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.hairline}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:13,fontWeight:500,marginBottom:2}}>CSV spreadsheet</div><div className="mono" style={{fontSize:10,color:C.muted}}>All stakeholder data — open in Excel or Sheets</div></div>
+                <button className="btn btn-fill btn-sm" onClick={()=>{
+                  const headers=["Name","Role","Department","Quadrant","Influence","Interest","Sentiment","Notes"];
+                  const rows=stakeholders.map(s=>[s.name,s.role||"",s.department||"",s.quadrant,s.influence,s.interest,s.sentiment,s.notes||""].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+                  const csv=[headers.join(","),...rows].join("\n");
+                  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`${map.name.replace(/[^a-z0-9]/gi,"_")}_stakeholders.csv`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+                }}>Download CSV</button>
+              </div>
             </div>
-
-            {/* SVG Matrix */}
-            <div style={{padding:16,borderRadius:10,background:C.surface,border:`1px solid ${C.border}`}}>
-              <div style={{fontSize:13,fontWeight:700,marginBottom:4}}>🖼️ SVG Matrix</div>
-              <div style={{fontSize:12,color:C.muted,marginBottom:10}}>Download the influence/interest matrix as an SVG file. Import into Figma, Miro, or PowerPoint.</div>
-              <button className="btn btn-p btn-sm" onClick={()=>{
-                const W=700,H=500,PAD=60;
-                const dotColor={champion:"#34D399",supportive:"#6DD4A0",neutral:"#FBBF24",resistant:"#FF9B6A",blocker:"#FF6B4A"};
-                const dots=stakeholders.map(s=>{
-                  const x=PAD+(s.interest/100)*(W-PAD*2);
-                  const y=(H-PAD)-(s.influence/100)*(H-PAD*2);
-                  const col=dotColor[s.sentiment]||"#4F8BFF";
-                  return`<circle cx="${x}" cy="${y}" r="9" fill="${col}" opacity="0.9"/>
-<text x="${x}" y="${y-14}" text-anchor="middle" font-size="11" fill="#E8ECF4" font-family="system-ui">${s.name.split(" ")[0]}</text>`;
-                }).join("\n");
-                const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-  <rect width="${W}" height="${H}" fill="#131825"/>
-  <line x1="${W/2}" y1="${PAD}" x2="${W/2}" y2="${H-PAD}" stroke="#232B42" stroke-width="1"/>
-  <line x1="${PAD}" y1="${H/2}" x2="${W-PAD}" y2="${H/2}" stroke="#232B42" stroke-width="1"/>
-  <text x="${W*0.25}" y="${PAD-10}" text-anchor="middle" font-size="11" fill="#A78BFA" font-family="system-ui" opacity="0.7">KEEP SATISFIED</text>
-  <text x="${W*0.75}" y="${PAD-10}" text-anchor="middle" font-size="11" fill="#FF6B4A" font-family="system-ui" opacity="0.7">MANAGE CLOSELY</text>
-  <text x="${W*0.25}" y="${H-PAD+20}" text-anchor="middle" font-size="11" fill="#8892A8" font-family="system-ui" opacity="0.7">MONITOR</text>
-  <text x="${W*0.75}" y="${H-PAD+20}" text-anchor="middle" font-size="11" fill="#4F8BFF" font-family="system-ui" opacity="0.7">KEEP INFORMED</text>
-  <text x="${PAD-10}" y="${H/2}" text-anchor="middle" font-size="11" fill="#8892A8" font-family="system-ui" transform="rotate(-90,${PAD-10},${H/2})">INFLUENCE →</text>
-  <text x="${W/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="#8892A8" font-family="system-ui">INTEREST →</text>
-  ${dots}
-</svg>`;
-                const blob=new Blob([svg],{type:"image/svg+xml"});
-                const url=URL.createObjectURL(blob);
-                const a=document.createElement("a");
-                a.href=url;a.download=`${map.name.replace(/[^a-z0-9]/gi,"_")}_matrix.svg`;
-                document.body.appendChild(a);a.click();
-                document.body.removeChild(a);URL.revokeObjectURL(url);
-              }}>🖼️ Download SVG</button>
+            <div style={{padding:"16px 20px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><div style={{fontSize:13,fontWeight:500,marginBottom:2}}>SVG matrix</div><div className="mono" style={{fontSize:10,color:C.muted}}>Influence/interest matrix — import into Figma, Miro, PowerPoint</div></div>
+                <button className="btn btn-fill btn-sm" onClick={()=>{
+                  const W=700,H=500,PAD=60;
+                  const dotColor={champion:C.moss,supportive:"#7A9E7C",neutral:C.amber,resistant:"#B85C30",blocker:C.signal};
+                  const dots=stakeholders.map(s=>{const x=PAD+(s.interest/100)*(W-PAD*2),y=(H-PAD)-(s.influence/100)*(H-PAD*2),col=dotColor[s.sentiment]||C.ink;return`<circle cx="${x}" cy="${y}" r="8" fill="${col}" opacity="0.9"/><text x="${x}" y="${y-12}" text-anchor="middle" font-size="10" fill="${C.ink}" font-family="'JetBrains Mono',monospace">${s.name.split(" ")[0]}</text>`;}).join("\n");
+                  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${C.bg}"/><line x1="${W/2}" y1="${PAD}" x2="${W/2}" y2="${H-PAD}" stroke="${C.hairline}" stroke-width="1"/><line x1="${PAD}" y1="${H/2}" x2="${W-PAD}" y2="${H/2}" stroke="${C.hairline}" stroke-width="1"/><text x="${W*0.25}" y="${PAD-12}" text-anchor="middle" font-size="9" fill="${C.amber}" font-family="'JetBrains Mono',monospace" letter-spacing="1">KEEP SATISFIED</text><text x="${W*0.75}" y="${PAD-12}" text-anchor="middle" font-size="9" fill="${C.signal}" font-family="'JetBrains Mono',monospace" letter-spacing="1">MANAGE CLOSELY</text><text x="${W*0.25}" y="${H-PAD+18}" text-anchor="middle" font-size="9" fill="${C.muted}" font-family="'JetBrains Mono',monospace" letter-spacing="1">MONITOR</text><text x="${W*0.75}" y="${H-PAD+18}" text-anchor="middle" font-size="9" fill="${C.moss}" font-family="'JetBrains Mono',monospace" letter-spacing="1">KEEP INFORMED</text>${dots}</svg>`;
+                  const blob=new Blob([svg],{type:"image/svg+xml"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`${map.name.replace(/[^a-z0-9]/gi,"_")}_matrix.svg`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+                }}>Download SVG</button>
+              </div>
             </div>
-
           </div>
-          {stakeholders.length===0&&<div style={{fontSize:13,color:C.dim,textAlign:"center",padding:20,fontStyle:"italic",marginTop:16}}>Add stakeholders first to enable export.</div>}
+          {stakeholders.length===0&&<div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:20,marginTop:16}}>Add stakeholders first to enable export.</div>}
         </div>
       )}
 
-      {/* Empty state */}
       {stakeholders.length===0&&!showForm&&tab==="map"&&(
-        <div style={{textAlign:"center",padding:"48px 20px",marginTop:16}} className="card">
-          <div style={{fontSize:40,marginBottom:12}}>🗺️</div>
-          <h3 style={{fontSize:18,fontWeight:700,marginBottom:6}}>Map your stakeholders</h3>
-          <p style={{fontSize:14,color:C.muted,marginBottom:20,maxWidth:400,margin:"0 auto 20px"}}>Add stakeholders one by one, or use the Import tab to paste a list.</p>
-          <button className="btn btn-p" onClick={()=>setShowForm(true)}>+ Add Your First Stakeholder</button>
+        <div className="card" style={{textAlign:"center",padding:48,marginTop:1}}>
+          <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:12}}>EMPTY MAP</div>
+          <h3 style={{fontSize:16,fontWeight:600,marginBottom:6}}>Map your stakeholders</h3>
+          <p style={{fontSize:13,color:C.ink2,marginBottom:24,maxWidth:400,margin:"0 auto 24px"}}>Add stakeholders one by one, or use the Import tab to paste a list.</p>
+          <button className="btn btn-fill" onClick={()=>setShowForm(true)}>+ Add first stakeholder</button>
         </div>
       )}
     </div>
   );
 }
 
-// ── Stakeholder Form ──
 function StakeholderForm({editing:ed,onAdd,onCancel}){
-  const[name,setName]=useState(ed?.name||"");
-  const[role,setRole]=useState(ed?.role||"");
-  const[dept,setDept]=useState(ed?.department||"");
-  const[inf,setInf]=useState(ed?.influence??50);
-  const[int,setInt]=useState(ed?.interest??50);
-  const[sent,setSent]=useState(ed?.sentiment||"neutral");
-  const[notes,setNotes]=useState(ed?.notes||"");
-  const q=classify(inf,int);const m=QUAD[q];
-
+  const[name,setName]=useState(ed?.name||"");const[role,setRole]=useState(ed?.role||"");const[dept,setDept]=useState(ed?.department||"");
+  const[inf,setInf]=useState(ed?.influence??50);const[int,setInt]=useState(ed?.interest??50);const[sent,setSent]=useState(ed?.sentiment||"neutral");const[notes,setNotes]=useState(ed?.notes||"");
+  const q=classify(inf,int);const qm=QUAD[q];
   return(
-    <div className="card" style={{marginBottom:16}}>
-      <div style={{fontSize:16,fontWeight:700,marginBottom:16}}>{ed?"Edit Stakeholder":"Add Stakeholder"}</div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+    <div className="card" style={{marginBottom:1}}>
+      <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:16}}>{ed?"EDIT STAKEHOLDER":"ADD STAKEHOLDER"}</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
         <div><label className="label">Name</label><input className="inp" value={name} onChange={e=>setName(e.target.value)} placeholder="Jane Smith"/></div>
         <div><label className="label">Role</label><input className="inp" value={role} onChange={e=>setRole(e.target.value)} placeholder="VP Engineering"/></div>
       </div>
-      <div style={{marginBottom:12}}><label className="label">Department</label><input className="inp" value={dept} onChange={e=>setDept(e.target.value)} placeholder="Engineering"/></div>
-      <div style={{marginBottom:12}}>
-        <div style={{display:"flex",justifyContent:"space-between"}}><label className="label">Influence / Power</label><span style={{fontSize:13,fontWeight:700,color:C.accent}}>{inf}%</span></div>
-        <input type="range" min="0" max="100" value={inf} onChange={e=>setInf(+e.target.value)} style={{width:"100%",accentColor:C.accent}}/>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:C.dim}}><span>Low</span><span>High</span></div>
+      <div style={{marginBottom:10}}><label className="label">Department</label><input className="inp" value={dept} onChange={e=>setDept(e.target.value)} placeholder="Engineering"/></div>
+      <div style={{marginBottom:10}}>
+        <div style={{display:"flex",justifyContent:"space-between"}}><label className="label">Influence / power</label><span className="mono" style={{fontSize:11,color:C.ink,fontWeight:500}}>{inf}%</span></div>
+        <input type="range" min="0" max="100" value={inf} onChange={e=>setInf(+e.target.value)}/>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:2}}><span className="mono" style={{fontSize:9,color:C.muted}}>LOW</span><span className="mono" style={{fontSize:9,color:C.muted}}>HIGH</span></div>
       </div>
       <div style={{marginBottom:12}}>
-        <div style={{display:"flex",justifyContent:"space-between"}}><label className="label">Interest / Impact</label><span style={{fontSize:13,fontWeight:700,color:C.accent}}>{int}%</span></div>
-        <input type="range" min="0" max="100" value={int} onChange={e=>setInt(+e.target.value)} style={{width:"100%",accentColor:C.accent}}/>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:C.dim}}><span>Low</span><span>High</span></div>
+        <div style={{display:"flex",justifyContent:"space-between"}}><label className="label">Interest / impact</label><span className="mono" style={{fontSize:11,color:C.ink,fontWeight:500}}>{int}%</span></div>
+        <input type="range" min="0" max="100" value={int} onChange={e=>setInt(+e.target.value)}/>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:2}}><span className="mono" style={{fontSize:9,color:C.muted}}>LOW</span><span className="mono" style={{fontSize:9,color:C.muted}}>HIGH</span></div>
       </div>
       <div style={{marginBottom:12}}>
         <label className="label">Sentiment</label>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:4}}>
-          {["champion","supportive","neutral","resistant","blocker"].map(s=>(
-            <button key={s} onClick={()=>setSent(s)} style={{padding:"6px 12px",borderRadius:6,border:`1px solid ${sent===s?C.accent:C.border}`,background:sent===s?C.accentG:"transparent",color:sent===s?C.accent:C.muted,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",textTransform:"capitalize"}}>{s}</button>
+        <div style={{display:"flex",gap:0,marginTop:4,border:`1px solid ${C.hairline}`}}>
+          {["champion","supportive","neutral","resistant","blocker"].map((s,i)=>(
+            <button key={s} onClick={()=>setSent(s)} style={{flex:1,padding:"7px 4px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:sent===s?C.ink:C.bg,color:sent===s?C.bg:C.ink2,fontSize:11,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{s}</button>
           ))}
         </div>
       </div>
-      <div style={{marginBottom:12}}><label className="label">Notes</label><textarea className="inp" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Key concerns, motivations..." style={{minHeight:60,resize:"vertical"}}/></div>
-      <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:m.glow,marginBottom:12}}>
-        <span>{m.icon}</span><span style={{fontSize:13,fontWeight:600,color:m.color}}>{q}</span><span style={{fontSize:12,color:C.muted}}>— {m.strategy}</span>
+      <div style={{marginBottom:12}}><label className="label">Notes</label><textarea className="inp" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Key concerns, motivations, context..." style={{minHeight:60,resize:"vertical"}}/></div>
+      <div style={{padding:"8px 12px",background:qm.bg,border:`1px solid ${qm.color}`,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+        <span className="badge" style={{borderColor:qm.color,color:qm.color,fontSize:9}}>{q}</span>
+        <span className="mono" style={{fontSize:10,color:C.ink2}}>{qm.strategy}</span>
       </div>
       <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-        <button className="btn btn-s" onClick={onCancel}>Cancel</button>
-        <button className="btn btn-p" disabled={!name.trim()} onClick={()=>onAdd({name:name.trim(),role:role.trim(),department:dept.trim(),influence:inf,interest:int,sentiment:sent,notes,quadrant:q})}>
-          {ed?"Save Changes":"Add Stakeholder"}
-        </button>
+        <button className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+        <button className="btn btn-fill btn-sm" disabled={!name.trim()} onClick={()=>onAdd({name:name.trim(),role:role.trim(),department:dept.trim(),influence:inf,interest:int,sentiment:sent,notes,quadrant:q})}>{ed?"Save changes":"Add stakeholder"}</button>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════
-// APP ROOT
-// ══════════════════════════════════════════
 function App(){
-  const route=useRouter();
-  const{user,loading}=useAuth();
-
-  if(loading)return<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",color:C.dim}}>Loading...</div>;
-
+  const route=useRouter();const{user,loading}=useAuth();
+  if(loading)return<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><span className="mono" style={{fontSize:12,color:C.muted}}>Loading...</span></div>;
   const needsAuth=route.startsWith("/dashboard")||route.startsWith("/map/");
   if(needsAuth&&!user){go("/login");return null;}
-
   const mapMatch=route.match(/^\/map\/(.+)$/);
-
   return(
     <div style={{minHeight:"100vh"}}>
       <Nav user={user}/>
@@ -1062,7 +750,6 @@ function App(){
     </div>
   );
 }
-
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
