@@ -387,10 +387,28 @@ function MapEditor({mapId,user}){
   const[analysisMode,setAnalysisMode]=useState("strategy");const[analysis,setAnalysis]=useState("");const[analysisLoading,setAnalysisLoading]=useState(false);
   const[draftTarget,setDraftTarget]=useState(null);const[draftText,setDraftText]=useState("");const[draftLoading,setDraftLoading]=useState(false);const[draftContext,setDraftContext]=useState("");
   const[importText,setImportText]=useState("");const[importLoading,setImportLoading]=useState(false);const[importStatus,setImportStatus]=useState(null);
+  // Touchpoints
+  const[touchpoints,setTouchpoints]=useState([]);const[tpLoading,setTpLoading]=useState(false);const[tpTarget,setTpTarget]=useState(null);const[tpForm,setTpForm]=useState({type:"meeting",notes:"",sentiment_after:"neutral"});const[tpSaving,setTpSaving]=useState(false);
   const saveTimer=useRef(null);
 
-  useEffect(()=>{loadMap()},[mapId]);
+  useEffect(()=>{loadMap();loadTouchpoints();},[mapId]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);}else go("/dashboard");setLoading(false);};
+  const loadTouchpoints=async()=>{const{data}=await sb.from("touchpoints").select("*").eq("map_id",mapId).order("logged_at",{ascending:false});if(data)setTouchpoints(data);};
+  const logTouchpoint=async()=>{
+    if(!tpTarget)return;
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)return;
+    setTpSaving(true);
+    await sb.from("touchpoints").insert({user_id:session.user.id,map_id:mapId,stakeholder_id:tpTarget.id,stakeholder_name:tpTarget.name,type:tpForm.type,notes:tpForm.notes,sentiment_after:tpForm.sentiment_after,logged_at:new Date().toISOString()});
+    // Optionally update stakeholder sentiment in the map
+    if(tpForm.sentiment_after!==tpTarget.sentiment){
+      const updated=stakeholders.map(s=>s.id===tpTarget.id?{...s,sentiment:tpForm.sentiment_after}:s);
+      saveStakeholders(updated);
+    }
+    setTpTarget(null);setTpForm({type:"meeting",notes:"",sentiment_after:"neutral"});
+    await loadTouchpoints();
+    setTpSaving(false);
+  };
   const saveStakeholders=useCallback((newList)=>{setStakeholders(newList);if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(async()=>{setSaving(true);await sb.from("maps").update({stakeholders:newList,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);},1000);},[mapId]);
   const addStakeholder=(s)=>{if(editing){saveStakeholders(stakeholders.map(p=>p.id===editing.id?{...s,id:editing.id}:p));setEditing(null);}else{saveStakeholders([...stakeholders,{...s,id:Date.now().toString()}]);}setShowForm(false);};
   const deleteStakeholder=(id)=>{saveStakeholders(stakeholders.filter(p=>p.id!==id));if(selected===id)setSelected(null);};
@@ -481,7 +499,7 @@ Text:\n${importText}`;
 
       {/* Tabs */}
       <div style={{display:"flex",gap:0,borderBottom:`1px solid ${C.hairline}`,marginBottom:16}}>
-        {[{id:"map",l:"Map"},{id:"analysis",l:"AI analysis"},{id:"messages",l:"Messages"},{id:"import",l:"Import"},{id:"export",l:"Export"}].map(t=>(
+        {[{id:"map",l:"Map"},{id:"analysis",l:"AI analysis"},{id:"messages",l:"Messages"},{id:"touchpoints",l:"Touchpoints"},{id:"import",l:"Import"},{id:"export",l:"Export"}].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"8px 16px",border:"none",background:"transparent",borderBottom:tab===t.id?`2px solid ${C.ink}`:"2px solid transparent",color:tab===t.id?C.ink:C.muted,fontSize:12,fontWeight:tab===t.id?600:400,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",marginBottom:-1}}>{t.l}</button>
         ))}
       </div>
@@ -628,6 +646,124 @@ Text:\n${importText}`;
           <button className="btn btn-fill btn-block" style={{marginTop:10}} disabled={!importText.trim()||importLoading} onClick={runImport}>
             {importLoading?"Parsing with AI...":"Import with AI"}
           </button>
+        </div>
+      )}
+
+      {/* TOUCHPOINTS TAB */}
+      {tab==="touchpoints"&&(
+        <div>
+          {/* Header row */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div>
+              <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:2}}>TOUCHPOINTS</div>
+              <p style={{fontSize:12,color:C.ink2}}>Log every stakeholder interaction. Powers the Follow-up Board in Transformation OS.</p>
+            </div>
+            <a href="https://transformation-os-mauve.vercel.app/followup" target="_blank" className="btn btn-ghost btn-sm">
+              View Follow-up Board ↗
+            </a>
+          </div>
+
+          {/* Stakeholder list — log button per row */}
+          <div style={{border:`1px solid ${C.hairline}`,marginBottom:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 100px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`}}>
+              {["Stakeholder","Quadrant","Last contact","Interactions",""].map(h=><div key={h} className="label" style={{margin:0}}>{h}</div>)}
+            </div>
+            {stakeholders.length===0?(
+              <div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:24}}>Add stakeholders first</div>
+            ):stakeholders.map((s,i)=>{
+              // Find touchpoints for this stakeholder
+              const stps=touchpoints.filter(t=>t.stakeholder_id===s.id);
+              const last=stps[0];
+              const daysSince=last?Math.floor((Date.now()-new Date(last.logged_at))/(24*60*60*1000)):null;
+              const cadenceDays=s.quadrant==="Manage Closely"?7:s.quadrant==="Keep Satisfied"?14:30;
+              const status=daysSince===null?"never":daysSince>cadenceDays?"overdue":daysSince>cadenceDays-2?"due-soon":"on-track";
+              const statusColor={never:C.signal,overdue:C.signal,"due-soon":C.amber,"on-track":C.moss}[status];
+              return(
+                <div key={s.id} style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 100px",padding:"11px 16px",borderBottom:i<stakeholders.length-1?`1px solid ${C.hairline}`:"none",alignItems:"center",background:status==="overdue"||status==="never"?"rgba(214,50,31,0.03)":"transparent"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:500}}>{s.name}</div>
+                    <div className="mono" style={{fontSize:10,color:C.muted}}>{s.role}</div>
+                  </div>
+                  <div><span className="badge" style={{borderColor:QUAD[s.quadrant].color,color:QUAD[s.quadrant].color,fontSize:9}}>{s.quadrant}</span></div>
+                  <div className="mono" style={{fontSize:11,color:C.ink2}}>{daysSince===null?"—":`${daysSince}d ago`}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
+                    <span className="mono" style={{fontSize:9,color:statusColor,textTransform:"uppercase",letterSpacing:".04em"}}>
+                      {status==="never"?"Never logged":status==="overdue"?"Overdue":status==="due-soon"?"Due soon":"On track"}
+                    </span>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <button className="btn btn-fill btn-xs" onClick={()=>{setTpTarget(s);setTpForm({type:"meeting",notes:"",sentiment_after:s.sentiment||"neutral"});}}>Log +</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Recent log */}
+          {touchpoints.length>0&&(
+            <div>
+              <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>RECENT LOG</div>
+              <div style={{border:`1px solid ${C.hairline}`}}>
+                <div style={{display:"grid",gridTemplateColumns:"140px 1fr 100px 120px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`}}>
+                  {["Stakeholder","Notes","Type","Date"].map(h=><div key={h} className="label" style={{margin:0}}>{h}</div>)}
+                </div>
+                {touchpoints.slice(0,20).map((t,i)=>(
+                  <div key={t.id} style={{display:"grid",gridTemplateColumns:"140px 1fr 100px 120px",padding:"10px 16px",borderBottom:i<Math.min(touchpoints.length,20)-1?`1px solid ${C.hairline}`:"none",alignItems:"center"}}>
+                    <div style={{fontSize:12,fontWeight:500}}>{t.stakeholder_name}</div>
+                    <div style={{fontSize:12,color:C.ink2}}>{t.notes||<span style={{color:C.muted,fontStyle:"italic"}}>No notes</span>}</div>
+                    <div><span className="badge" style={{borderColor:C.hairline,color:C.muted,fontSize:9}}>{t.type}</span></div>
+                    <div className="mono" style={{fontSize:10,color:C.muted}}>{new Date(t.logged_at).toLocaleDateString("en-GB")}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Log modal */}
+          {tpTarget&&(
+            <div style={{position:"fixed",inset:0,background:"rgba(10,10,10,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}}
+              onClick={e=>e.target===e.currentTarget&&setTpTarget(null)}>
+              <div className="card" style={{width:400,padding:28}}>
+                <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:16}}>LOG TOUCHPOINT</div>
+                <h3 style={{fontSize:15,fontWeight:600,marginBottom:2}}>{tpTarget.name}</h3>
+                <p className="mono" style={{fontSize:10,color:C.muted,marginBottom:20}}>{tpTarget.role} · {tpTarget.quadrant}</p>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
+                  <div>
+                    <label className="label">Type</label>
+                    <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
+                      {["meeting","email","call","message","other"].map((t,i)=>(
+                        <button key={t} onClick={()=>setTpForm(f=>({...f,type:t}))} style={{flex:1,padding:"7px 4px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.type===t?C.ink:C.bg,color:tpForm.type===t?C.bg:C.ink2,fontSize:11,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{t}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="label">Sentiment after</label>
+                    <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
+                      {["champion","supportive","neutral","resistant","blocker"].map((s,i)=>(
+                        <button key={s} onClick={()=>setTpForm(f=>({...f,sentiment_after:s}))} style={{flex:1,padding:"7px 2px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.sentiment_after===s?C.ink:C.bg,color:tpForm.sentiment_after===s?C.bg:C.ink2,fontSize:10,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{s}</button>
+                      ))}
+                    </div>
+                    {tpForm.sentiment_after!==tpTarget.sentiment&&(
+                      <div className="mono" style={{fontSize:9,color:C.amber,marginTop:4}}>
+                        Sentiment will update: {tpTarget.sentiment} → {tpForm.sentiment_after}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="label">Notes (optional)</label>
+                    <textarea className="inp" value={tpForm.notes} onChange={e=>setTpForm(f=>({...f,notes:e.target.value}))} placeholder="Key takeaways, commitments, next steps..." style={{minHeight:80,resize:"vertical"}}/>
+                  </div>
+                  <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+                    <button className="btn btn-ghost btn-sm" onClick={()=>setTpTarget(null)}>Cancel</button>
+                    <button className="btn btn-fill btn-sm" onClick={logTouchpoint} disabled={tpSaving}>
+                      {tpSaving?"Saving...":"Log touchpoint"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
