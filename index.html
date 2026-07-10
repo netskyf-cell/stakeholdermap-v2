@@ -390,9 +390,21 @@ function MapEditor({mapId,user}){
   // Touchpoints
   const[touchpoints,setTouchpoints]=useState([]);const[tpLoading,setTpLoading]=useState(false);const[tpTarget,setTpTarget]=useState(null);const[tpForm,setTpForm]=useState({type:"meeting",notes:"",sentiment_after:"neutral"});const[tpSaving,setTpSaving]=useState(false);
   const saveTimer=useRef(null);
+  const[initiatives,setInitiatives]=useState([]);
+  const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
-  useEffect(()=>{loadMap();loadTouchpoints();},[mapId]);
-  const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);}else go("/dashboard");setLoading(false);};
+  useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
+  const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);}else go("/dashboard");setLoading(false);};
+  const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
+  const linkInitiative=async(initiativeId)=>{
+  // Freemium gate: 1 map per initiative on free tier
+  if(initiativeId){
+    const{data:existing}=await sb.from("maps").select("id").eq("initiative_id",initiativeId).neq("id",mapId);
+    if(existing&&existing.length>0){alert("Free plan: only 1 map per initiative. Upgrade to link multiple maps.");return;}
+  }
+  setLinkedInitiativeId(initiativeId||null);
+  await sb.from("maps").update({initiative_id:initiativeId||null,updated_at:new Date().toISOString()}).eq("id",mapId);
+};
   const loadTouchpoints=async()=>{const{data}=await sb.from("touchpoints").select("*").eq("map_id",mapId).order("logged_at",{ascending:false});if(data)setTouchpoints(data);};
   const logTouchpoint=async()=>{
     if(!tpTarget)return;
@@ -469,12 +481,30 @@ Text:\n${importText}`;
     <div className="container" style={{padding:"16px 24px 60px"}}>
       {/* Header */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${C.hairline}`}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <button className="btn btn-ghost btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
-          <span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span>
-          <h2 style={{fontSize:16,fontWeight:600,letterSpacing:"-0.02em"}}>{map.name}</h2>
-          {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <button className="btn btn-ghost btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
+            <span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span>
+            <h2 style={{fontSize:16,fontWeight:600,letterSpacing:"-0.02em"}}>{map.name}</h2>
+            {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
         </div>
+  <div style={{display:"flex",alignItems:"center",gap:8,paddingLeft:2}}>
+    <span className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em"}}>INITIATIVE</span>
+    <select
+      className="inp"
+      value={linkedInitiativeId||""}
+      onChange={e=>linkInitiative(e.target.value||null)}
+      style={{width:"auto",minWidth:200,fontSize:12,padding:"4px 8px",border:`1px solid ${linkedInitiativeId?C.ink:C.hairline}`,color:linkedInitiativeId?C.ink:C.muted,background:linkedInitiativeId?C.surface:C.bg}}>
+      <option value="">— Not linked to an initiative —</option>
+      {initiatives.map(i=>(
+        <option key={i.id} value={i.id}>{i.name}{i.status&&i.status!=="active"?" ("+i.status+")":""}</option>
+      ))}
+    </select>
+    {linkedInitiativeId&&(
+      <a href="https://transformation-os-mauve.vercel.app/#/initiatives" target="_blank" className="mono" style={{fontSize:10,color:C.muted,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color=C.ink} onMouseLeave={e=>e.target.style.color=C.muted}>View in TOS ↗</a>
+    )}
+  </div>
+</div>
         <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
       </div>
 
