@@ -392,6 +392,8 @@ function MapEditor({mapId,user}){
   const[touchpoints,setTouchpoints]=useState([]);const[tpLoading,setTpLoading]=useState(false);const[tpTarget,setTpTarget]=useState(null);const[tpForm,setTpForm]=useState({type:"meeting",notes:"",sentiment_after:"neutral"});const[tpSaving,setTpSaving]=useState(false);
   const saveTimer=useRef(null);
   const[initiatives,setInitiatives]=useState([]);
+  const[mapName,setMapName]=useState("");
+  const[mapDescription,setMapDescription]=useState("");
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
