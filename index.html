@@ -501,6 +501,19 @@ Text:\n${importText}`;
             />
             {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
         </div>
+        <div style={{paddingLeft:2,marginTop:2}}>
+          <input
+            value={mapDescription}
+            onChange={e=>setMapDescription(e.target.value)}
+            onBlur={()=>saveMapMeta("description",mapDescription)}
+            onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape"){setMapDescription(map.description||"");e.target.blur();}}}
+            placeholder="Add a description..."
+            style={{fontSize:12,color:C.ink2,border:"none",borderBottom:`1px solid transparent`,background:"transparent",fontFamily:"'Inter Tight',sans-serif",outline:"none",padding:"0 2px",width:340,cursor:"text"}}
+            onMouseEnter={e=>e.target.style.borderBottomColor=C.hairline}
+            onMouseLeave={e=>e.target.style.borderBottomColor="transparent"}
+            onFocus={e=>e.target.style.borderBottomColor=C.ink}
+          />
+        </div>
   <div style={{display:"flex",alignItems:"center",gap:8,paddingLeft:2}}>
     <span className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em"}}>INITIATIVE</span>
     <select
