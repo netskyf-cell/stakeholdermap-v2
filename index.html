@@ -399,6 +399,7 @@ function MapEditor({mapId,user}){
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);setMapName(data.name||"");setMapDescription(data.description||"");}else go("/dashboard");setLoading(false);};
   const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
+  const saveMapMeta=async(field,value)=>{setSaving(true);await sb.from("maps").update({[field]:value,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);};
   const linkInitiative=async(initiativeId)=>{
   // Freemium gate: 1 map per initiative on free tier
   if(initiativeId){
