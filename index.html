@@ -127,7 +127,8 @@ function Nav({user}){
           {user&&(
             <div style={{display:"flex",gap:2}}>
               <button onClick={()=>go("/dashboard")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.ink2,fontSize:12}}>Dashboard</button>
-              <button onClick={()=>window.open("https://transformation-os-mauve.vercel.app","_blank")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.muted,fontSize:12}}>Transformation OS ↗</button>
+              <button onClick={()=>window.open("https://transformation-os-mauve.vercel.app/#/initiatives","_blank")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.ink2,fontSize:12}}>Initiatives</button>
+              <button onClick={()=>window.open("https://transformation-os-mauve.vercel.app","_blank")} className="btn btn-ghost btn-sm" style={{border:"none",color:C.muted,fontSize:12}}>Portal</button>
             </div>
           )}
         </div>
