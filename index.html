@@ -606,7 +606,10 @@ Text:\n${importText}`;
     )}
   </div>
 </div>
-        <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
+        <<div style={{display:"flex",gap:8}}>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setShowThresholds(v=>!v)}>Thresholds</button>
+          <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
+        </div>
       </div>
 
       {/* Stat cards */}
