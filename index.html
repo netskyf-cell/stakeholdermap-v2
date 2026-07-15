@@ -400,6 +400,7 @@ function MapEditor({mapId,user}){
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
+  useEffect(()=>{if(stakeholders.length>0&&touchpoints!==undefined)generateNudges(stakeholders,touchpoints,nudgeThresholds);},[stakeholders,touchpoints]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);setMapName(data.name||"");setMapDescription(data.description||"");setNudgeThresholds(data.nudge_thresholds||{manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});}else go("/dashboard");setLoading(false);};
   const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
   const saveMapMeta=async(field,value)=>{setSaving(true);await sb.from("maps").update({[field]:value,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);};
@@ -521,6 +522,42 @@ Text:\n${importText}`;
 
   return(
     <div className="container" style={{padding:"16px 24px 60px"}}>
+      {/* Nudge strip */}
+      {nudges.length>0&&(
+        <div style={{marginBottom:12}}>
+          {nudges.map(n=>(
+            <div key={n.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:C.amberG,border:`1px solid ${C.amber}`,marginBottom:4}}>
+              <span style={{color:C.amber,fontSize:14,flexShrink:0}}>!</span>
+              <span className="mono" style={{fontSize:11,color:C.ink,flex:1}}>{n.message}</span>
+              <button className="btn btn-ghost btn-xs" style={{borderColor:C.amber,color:C.amber,flexShrink:0}} onClick={()=>{setTpTarget(n.stakeholder);setTpForm({type:"meeting",notes:"",sentiment_after:n.stakeholder.sentiment||"neutral"});}}>Log touchpoint</button>
+              <button className="btn btn-ghost btn-xs" style={{flexShrink:0}} onClick={()=>dismissNudge(n.id)}>Dismiss</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Threshold settings */}
+      {showThresholds&&(
+        <div className="card" style={{marginBottom:12,padding:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em"}}>NUDGE THRESHOLDS</div>
+            <button className="btn btn-ghost btn-xs" onClick={()=>setShowThresholds(false)}>Close</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
+            {[{key:"manage_closely",label:"Manage Closely"},{key:"keep_satisfied",label:"Keep Satisfied"},{key:"keep_informed",label:"Keep Informed"},{key:"monitor",label:"Monitor"}].map(({key,label})=>(
+              <div key={key}>
+                <label className="label" style={{color:QUAD[label]?.color||C.muted}}>{label}</label>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <input type="number" min="1" max="365" className="inp" value={nudgeThresholds[key]} onChange={e=>{const updated={...nudgeThresholds,[key]:parseInt(e.target.value)||1};saveThresholds(updated);}} style={{width:64,textAlign:"center"}}/>
+                  <span className="mono" style={{fontSize:10,color:C.muted}}>days</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mono" style={{fontSize:10,color:C.muted,marginTop:12}}>Changes save instantly. Nudges recalculate on next map load.</div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${C.hairline}`}}>
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
