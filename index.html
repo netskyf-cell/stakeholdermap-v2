@@ -489,7 +489,16 @@ Text:\n${importText}`;
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button className="btn btn-ghost btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
             <span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span>
-            <h2 style={{fontSize:16,fontWeight:600,letterSpacing:"-0.02em"}}>{map.name}</h2>
+            <input
+              value={mapName}
+              onChange={e=>setMapName(e.target.value)}
+              onBlur={()=>saveMapMeta("name",mapName)}
+              onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape"){setMapName(map.name);e.target.blur();}}}
+              style={{fontSize:16,fontWeight:600,letterSpacing:"-0.02em",border:"none",borderBottom:`1px solid transparent`,background:"transparent",color:C.ink,fontFamily:"'Inter Tight',sans-serif",outline:"none",padding:"0 2px",minWidth:120,width:"auto",cursor:"text"}}
+              onMouseEnter={e=>e.target.style.borderBottomColor=C.hairline}
+              onMouseLeave={e=>e.target.style.borderBottomColor="transparent"}
+              onFocus={e=>e.target.style.borderBottomColor=C.ink}
+            />
             {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
         </div>
   <div style={{display:"flex",alignItems:"center",gap:8,paddingLeft:2}}>
