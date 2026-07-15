@@ -400,7 +400,13 @@ function MapEditor({mapId,user}){
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
-  useEffect(()=>{if(stakeholders.length>0&&touchpoints!==undefined)generateNudges(stakeholders,touchpoints,nudgeThresholds);},[mapId]);
+  const nudgesGenerated=useRef(false);
+  useEffect(()=>{
+    if(stakeholders.length>0&&!loading&&!nudgesGenerated.current){
+      nudgesGenerated.current=true;
+      generateNudges(stakeholders,touchpoints,nudgeThresholds);
+    }
+  },[loading,stakeholders.length]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);setMapName(data.name||"");setMapDescription(data.description||"");setNudgeThresholds(data.nudge_thresholds||{manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});}else go("/dashboard");setLoading(false);};
   const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
   const saveMapMeta=async(field,value)=>{setSaving(true);await sb.from("maps").update({[field]:value,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);};
