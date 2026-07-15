@@ -394,6 +394,9 @@ function MapEditor({mapId,user}){
   const[initiatives,setInitiatives]=useState([]);
   const[mapName,setMapName]=useState("");
   const[mapDescription,setMapDescription]=useState("");
+  const[nudges,setNudges]=useState([]);
+  const[nudgeThresholds,setNudgeThresholds]=useState({manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});
+  const[showThresholds,setShowThresholds]=useState(false);
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
