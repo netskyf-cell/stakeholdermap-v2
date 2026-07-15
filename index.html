@@ -400,25 +400,19 @@ function MapEditor({mapId,user}){
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
-  const nudgesGenerated=useRef(false);
   useEffect(()=>{
-    if(stakeholders.length>0&&!loading&&!nudgesGenerated.current){
-      nudgesGenerated.current=true;
-      generateNudges(stakeholders,touchpoints,nudgeThresholds);
-    }
-  },[loading,stakeholders.length]);
+    if(!loading&&stakeholders.length>0)generateNudges(stakeholders,touchpoints,nudgeThresholds);
+  },[loading]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);setMapName(data.name||"");setMapDescription(data.description||"");setNudgeThresholds(data.nudge_thresholds||{manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});}else go("/dashboard");setLoading(false);};
   const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
   const saveMapMeta=async(field,value)=>{setSaving(true);await sb.from("maps").update({[field]:value,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);};
 
   const saveThresholds=async(updated)=>{setNudgeThresholds(updated);await sb.from("maps").update({nudge_thresholds:updated,updated_at:new Date().toISOString()}).eq("id",mapId);};
 
-  const generateNudges=useCallback(async(currentStakeholders,currentTouchpoints,thresholds)=>{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session)return;
+  const generateNudges=useCallback((currentStakeholders,currentTouchpoints,thresholds)=>{
     const QUAD_KEY={"Manage Closely":"manage_closely","Keep Satisfied":"keep_satisfied","Keep Informed":"keep_informed","Monitor":"monitor"};
     const now=Date.now();
-    const newNudges=[];
+    const result=[];
     for(const s of currentStakeholders){
       const key=QUAD_KEY[s.quadrant];
       if(!key)continue;
@@ -428,23 +422,13 @@ function MapEditor({mapId,user}){
       const daysSince=last?Math.floor((now-new Date(last.logged_at))/(24*60*60*1000)):null;
       const isOverdue=daysSince===null||daysSince>threshold;
       if(!isOverdue)continue;
-      // Check if active nudge already exists
-      const{data:existing}=await sb.from("nudges").select("id").eq("user_id",session.user.id).eq("map_id",mapId).eq("stakeholder_id",s.id).eq("type","relationship_cold").eq("status","pending").maybeSingle();
-      if(existing)continue;
-      // Insert new nudge
       const msg=daysSince===null?`${s.name} has never been contacted. Cadence: every ${threshold} days.`:`${s.name} — no contact in ${daysSince} days. Cadence: every ${threshold} days.`;
-      const{data:inserted}=await sb.from("nudges").insert({user_id:session.user.id,map_id:mapId,stakeholder_id:s.id,type:"relationship_cold",message:msg,status:"pending"}).select().single();
-      if(inserted)newNudges.push({...inserted,stakeholder:s});
+      result.push({id:s.id,message:msg,stakeholder:s});
     }
-    // Load all pending nudges for this map
-    const{data:pending}=await sb.from("nudges").select("*").eq("map_id",mapId).eq("status","pending").eq("type","relationship_cold");
-    if(pending){
-      const enriched=pending.map(n=>({...n,stakeholder:currentStakeholders.find(s=>s.id===n.stakeholder_id)}));
-      setNudges(enriched.filter(n=>n.stakeholder));
-    }
-  },[mapId]);
+    setNudges(result);
+  },[]);
 
-  const dismissNudge=async(nudgeId)=>{await sb.from("nudges").update({status:"dismissed"}).eq("id",nudgeId);setNudges(prev=>prev.filter(n=>n.id!==nudgeId));};
+  const dismissNudge=(nudgeId)=>{setNudges(prev=>prev.filter(n=>n.id!==nudgeId));};
   const linkInitiative=async(initiativeId)=>{
   // Freemium gate: 1 map per initiative on free tier
   if(initiativeId){
