@@ -870,9 +870,11 @@ Text:\n${importText}`;
             </div>
             {stakeholders.length===0?(
               <div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:24}}>Add stakeholders first</div>
+            ):filtered.length===0?(
+              <div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:24}}>No stakeholders in this quadrant. Clear the filter above to see all.</div>
             ):(()=>{
               const range=mapTpDateRange();
-              return stakeholders.map((s,i)=>{
+              return filtered.map((s,i)=>{
                 const stps=stakeholderTps(s.id);
                 const last=stps[stps.length-1];
                 const daysSince=last?Math.floor((Date.now()-new Date(last.logged_at))/(24*60*60*1000)):null;
@@ -883,7 +885,7 @@ Text:\n${importText}`;
                 const isExpanded=expandedStakeholderId===s.id;
                 const arc=arcStatus(s.id);
                 return(
-                  <div key={s.id} style={{borderBottom:i<stakeholders.length-1?`1px solid ${C.hairline}`:"none"}}>
+                  <div key={s.id} style={{borderBottom:i<filtered.length-1?`1px solid ${C.hairline}`:"none"}}>
                     <div onClick={()=>setExpandedStakeholderId(isExpanded?null:s.id)}
                       style={{display:"grid",gridTemplateColumns:"28px 2.5fr 90px 1.6fr 100px",padding:"11px 16px",alignItems:"center",gap:12,cursor:"pointer",background:isExpanded?C.surface:(status==="overdue"||status==="never"?"rgba(214,50,31,0.03)":"transparent"),transition:"background .1s"}}>
                       <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:C.muted,userSelect:"none",transform:isExpanded?"rotate(90deg)":"rotate(0)",transition:"transform .15s"}}>›</div>
@@ -987,15 +989,19 @@ Text:\n${importText}`;
           </div>
 
           {/* Recent log */}
-          {touchpoints.length>0&&(
+          {(()=>{
+            const filteredIds=new Set(filtered.map(s=>s.id));
+            const recentTps=touchpoints.filter(t=>filteredIds.has(t.stakeholder_id)).slice(0,20);
+            if(recentTps.length===0)return null;
+            return(
             <div>
-              <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>RECENT LOG</div>
+              <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>RECENT LOG{filter?` · ${filter.toUpperCase()}`:""}</div>
               <div style={{border:`1px solid ${C.hairline}`}}>
                 <div style={{display:"grid",gridTemplateColumns:"140px 1fr 100px 120px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`}}>
                   {["Stakeholder","Notes","Type","Date"].map(h=><div key={h} className="label" style={{margin:0}}>{h}</div>)}
                 </div>
-                {touchpoints.slice(0,20).map((t,i)=>(
-                  <div key={t.id} style={{display:"grid",gridTemplateColumns:"140px 1fr 100px 120px",padding:"10px 16px",borderBottom:i<Math.min(touchpoints.length,20)-1?`1px solid ${C.hairline}`:"none",alignItems:"center"}}>
+                {recentTps.map((t,i)=>(
+                  <div key={t.id} style={{display:"grid",gridTemplateColumns:"140px 1fr 100px 120px",padding:"10px 16px",borderBottom:i<recentTps.length-1?`1px solid ${C.hairline}`:"none",alignItems:"center"}}>
                     <div style={{fontSize:12,fontWeight:500}}>{t.stakeholder_name}</div>
                     <div style={{fontSize:12,color:C.ink2}}>{t.notes||<span style={{color:C.muted,fontStyle:"italic"}}>No notes</span>}</div>
                     <div><span className="badge" style={{borderColor:C.hairline,color:C.muted,fontSize:9}}>{t.type}</span></div>
@@ -1004,7 +1010,8 @@ Text:\n${importText}`;
                 ))}
               </div>
             </div>
-          )}
+            );
+          })()}
 
         </div>
       )}
