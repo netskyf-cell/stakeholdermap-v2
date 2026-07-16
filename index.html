@@ -407,7 +407,7 @@ function MapEditor({mapId,user}){
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
   useEffect(()=>{
     if(!loading&&stakeholders.length>0)generateNudges(stakeholders,touchpoints,nudgeThresholds);
-  },[loading]);
+  },[loading,stakeholders,touchpoints,nudgeThresholds]);
   const loadMap=async()=>{setLoading(true);const{data,error}=await sb.from("maps").select("*").eq("id",mapId).single();if(!error&&data){setMap(data);setStakeholders(data.stakeholders||[]);setLinkedInitiativeId(data.initiative_id||null);setMapName(data.name||"");setMapDescription(data.description||"");setNudgeThresholds(data.nudge_thresholds||{manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});}else go("/dashboard");setLoading(false);};
   const loadInitiatives=async()=>{const{data}=await sb.from("initiatives").select("id,name,status").eq("user_id",user.id).order("name",{ascending:true});if(data)setInitiatives(data);};
   const saveMapMeta=async(field,value)=>{setSaving(true);await sb.from("maps").update({[field]:value,updated_at:new Date().toISOString()}).eq("id",mapId);setSaving(false);};
