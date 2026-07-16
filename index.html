@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
 :root {
-  --bg:#F2F2EE; --surface:#E9E7DF; --surface2:#DDDBD3;
+  --bg:#F2F2EE; --surface:#E9E7DF;
   --ink:#0A0A0A; --ink2:#4A4A46; --muted:#7A7A75; --hairline:#C7C7C0;
   --signal:#D6321F; --signal-g:rgba(214,50,31,0.08);
   --moss:#5C7A5E; --moss-g:rgba(92,122,94,0.10);
@@ -58,7 +58,7 @@ const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || "eyJhbGciOiJIUzI1NiIsI
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const C = {
-  bg:"#F2F2EE",surface:"#E9E7DF",surface2:"#DDDBD3",
+  bg:"#F2F2EE",surface:"#E9E7DF",
   ink:"#0A0A0A",ink2:"#4A4A46",muted:"#7A7A75",hairline:"#C7C7C0",
   signal:"#D6321F",signalG:"rgba(214,50,31,0.08)",
   moss:"#5C7A5E",mossG:"rgba(92,122,94,0.10)",
@@ -73,7 +73,7 @@ const QUAD={
 };
 const CADENCE={"Manage Closely":"Weekly 1:1","Keep Satisfied":"Bi-weekly update","Keep Informed":"Monthly newsletter","Monitor":"Quarterly check-in"};
 const SENT_COLORS={champion:C.moss,supportive:"#7A9E7C",neutral:C.amber,resistant:"#B85C30",blocker:C.signal};
-const MAP_TYPES={product:{label:"Product",code:"PRD",color:C.signal},project:{label:"Project",code:"PRJ",color:C.ink},portfolio:{label:"Portfolio",code:"PTF",color:C.moss}};
+const MAP_TYPES={product:{label:"Product",code:"PRD"},project:{label:"Project",code:"PRJ"},portfolio:{label:"Portfolio",code:"PTF"}};
 
 function classify(inf,int){
   if(inf>=50&&int>=50)return"Manage Closely";
