@@ -846,50 +846,6 @@ Text:\n${importText}`;
             </div>
           )}
 
-          {/* Log modal */}
-          {tpTarget&&(
-            <div style={{position:"fixed",inset:0,background:"rgba(10,10,10,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}}
-              onClick={e=>e.target===e.currentTarget&&setTpTarget(null)}>
-              <div className="card" style={{width:400,padding:28}}>
-                <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:16}}>LOG TOUCHPOINT</div>
-                <h3 style={{fontSize:15,fontWeight:600,marginBottom:2}}>{tpTarget.name}</h3>
-                <p className="mono" style={{fontSize:10,color:C.muted,marginBottom:20}}>{tpTarget.role} · {tpTarget.quadrant}</p>
-                <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                  <div>
-                    <label className="label">Type</label>
-                    <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
-                      {["meeting","email","call","message","other"].map((t,i)=>(
-                        <button key={t} onClick={()=>setTpForm(f=>({...f,type:t}))} style={{flex:1,padding:"7px 4px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.type===t?C.ink:C.bg,color:tpForm.type===t?C.bg:C.ink2,fontSize:11,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{t}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="label">Sentiment after</label>
-                    <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
-                      {SENTIMENTS.map((s,i)=>(
-                        <button key={s} onClick={()=>setTpForm(f=>({...f,sentiment_after:s}))} style={{flex:1,padding:"7px 2px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.sentiment_after===s?C.ink:C.bg,color:tpForm.sentiment_after===s?C.bg:C.ink2,fontSize:10,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{s}</button>
-                      ))}
-                    </div>
-                    {tpForm.sentiment_after!==tpTarget.sentiment&&(
-                      <div className="mono" style={{fontSize:9,color:C.amber,marginTop:4}}>
-                        Sentiment will update: {tpTarget.sentiment} → {tpForm.sentiment_after}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="label">Notes (optional)</label>
-                    <textarea className="inp" value={tpForm.notes} onChange={e=>setTpForm(f=>({...f,notes:e.target.value}))} placeholder="Key takeaways, commitments, next steps..." style={{minHeight:80,resize:"vertical"}}/>
-                  </div>
-                  <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-                    <button className="btn btn-ghost btn-sm" onClick={()=>setTpTarget(null)}>Cancel</button>
-                    <button className="btn btn-fill btn-sm" onClick={logTouchpoint} disabled={tpSaving}>
-                      {tpSaving?"Saving...":"Log touchpoint"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -943,6 +899,51 @@ Text:\n${importText}`;
           <h3 style={{fontSize:16,fontWeight:600,marginBottom:6}}>Map your stakeholders</h3>
           <p style={{fontSize:13,color:C.ink2,marginBottom:24,maxWidth:400,margin:"0 auto 24px"}}>Add stakeholders one by one, or use the Import tab to paste a list.</p>
           <button className="btn btn-fill" onClick={()=>setShowForm(true)}>+ Add first stakeholder</button>
+        </div>
+      )}
+
+      {/* Log touchpoint modal — rendered outside the touchpoints tab so nudge-strip and per-stakeholder triggers work from any tab */}
+      {tpTarget&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(10,10,10,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}}
+          onClick={e=>e.target===e.currentTarget&&setTpTarget(null)}>
+          <div className="card" style={{width:400,padding:28}}>
+            <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:16}}>LOG TOUCHPOINT</div>
+            <h3 style={{fontSize:15,fontWeight:600,marginBottom:2}}>{tpTarget.name}</h3>
+            <p className="mono" style={{fontSize:10,color:C.muted,marginBottom:20}}>{tpTarget.role} · {tpTarget.quadrant}</p>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div>
+                <label className="label">Type</label>
+                <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
+                  {["meeting","email","call","message","other"].map((t,i)=>(
+                    <button key={t} onClick={()=>setTpForm(f=>({...f,type:t}))} style={{flex:1,padding:"7px 4px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.type===t?C.ink:C.bg,color:tpForm.type===t?C.bg:C.ink2,fontSize:11,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{t}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="label">Sentiment after</label>
+                <div style={{display:"flex",gap:0,border:`1px solid ${C.hairline}`}}>
+                  {SENTIMENTS.map((s,i)=>(
+                    <button key={s} onClick={()=>setTpForm(f=>({...f,sentiment_after:s}))} style={{flex:1,padding:"7px 2px",border:"none",borderRight:i<4?`1px solid ${C.hairline}`:"none",background:tpForm.sentiment_after===s?C.ink:C.bg,color:tpForm.sentiment_after===s?C.bg:C.ink2,fontSize:10,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif",textAlign:"center",textTransform:"capitalize"}}>{s}</button>
+                  ))}
+                </div>
+                {tpForm.sentiment_after!==tpTarget.sentiment&&(
+                  <div className="mono" style={{fontSize:9,color:C.amber,marginTop:4}}>
+                    Sentiment will update: {tpTarget.sentiment} → {tpForm.sentiment_after}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="label">Notes (optional)</label>
+                <textarea className="inp" value={tpForm.notes} onChange={e=>setTpForm(f=>({...f,notes:e.target.value}))} placeholder="Key takeaways, commitments, next steps..." style={{minHeight:80,resize:"vertical"}}/>
+              </div>
+              <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+                <button className="btn btn-ghost btn-sm" onClick={()=>setTpTarget(null)}>Cancel</button>
+                <button className="btn btn-fill btn-sm" onClick={logTouchpoint} disabled={tpSaving}>
+                  {tpSaving?"Saving...":"Log touchpoint"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
