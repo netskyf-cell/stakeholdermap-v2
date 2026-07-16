@@ -400,6 +400,9 @@ function MapEditor({mapId,user}){
   const[nudgeThresholds,setNudgeThresholds]=useState({manage_closely:7,keep_satisfied:14,keep_informed:30,monitor:60});
   const[showThresholds,setShowThresholds]=useState(false);
   const[linkedInitiativeId,setLinkedInitiativeId]=useState(null);
+  const[expandedStakeholderId,setExpandedStakeholderId]=useState(null);
+  const[arcTexts,setArcTexts]=useState({});
+  const[arcLoadingId,setArcLoadingId]=useState(null);
 
   useEffect(()=>{loadMap();loadTouchpoints();loadInitiatives();},[mapId]);
   useEffect(()=>{
@@ -494,13 +497,63 @@ Text:\n${importText}`;
     strategy:"Analyze this stakeholder landscape:\n1. Top 3 engagement priorities\n2. Key risks from resistant stakeholders\n3. Coalition opportunities\n4. 3 concrete quick wins for next 30 days\nUse **bold** for key names.",
     comms:"Create a communication plan by quadrant:\n**Manage Closely** — weekly touchpoints, 1:1s\n**Keep Satisfied** — executive briefings, milestone updates\n**Keep Informed** — newsletters, town halls\n**Monitor** — periodic awareness\nFor each stakeholder: channel, frequency, message framing.",
     risks:"Identify stakeholder risks:\n1. **Blockers** — who could stop this\n2. **Silent resistors**\n3. **Dependency gaps**\n4. **Power dynamics**\n5. **Mitigations** — one action per risk\nUse **bold** for key names.",
+    mapArc:"Below is each stakeholder's relationship arc — the chronological log of touchpoints with sentiment shift. Write a 6-8 sentence portfolio-level reflection:\n- Which relationships are strong and well-tended (name them)\n- Which have recovered from resistance, and what turned them\n- Which are cooling or drifting, with why\n- Where blindspots sit (stakeholders with sparse or no history)\nReference specific dates or notes. Use **bold** for stakeholder names. Write as reflection, not a plan.",
+  };
+
+  // Relationship arc thresholds
+  const ARC_MIN_TP=10, ARC_MIN_NOTES_PCT=0.7;
+  const MAP_ARC_MIN_COVERAGE=0.6, MAP_ARC_MIN_TP_PER=3, MAP_ARC_MIN_SPAN_DAYS=30;
+
+  const stakeholderTps=(id)=>touchpoints.filter(t=>t.stakeholder_id===id).slice().sort((a,b)=>new Date(a.logged_at)-new Date(b.logged_at));
+
+  const arcStatus=(id)=>{
+    const tps=stakeholderTps(id);
+    const withNotes=tps.filter(t=>t.notes&&t.notes.trim().length>0).length;
+    const pct=tps.length?withNotes/tps.length:0;
+    return{tps,count:tps.length,withNotes,pct,unlocked:tps.length>=ARC_MIN_TP&&pct>=ARC_MIN_NOTES_PCT};
+  };
+
+  const mapArcStatus=()=>{
+    if(stakeholders.length===0||touchpoints.length===0)return{unlocked:false,coverage:0,spanDays:0,met:0,total:stakeholders.length};
+    const met=stakeholders.filter(s=>touchpoints.filter(t=>t.stakeholder_id===s.id).length>=MAP_ARC_MIN_TP_PER).length;
+    const coverage=met/stakeholders.length;
+    const dates=touchpoints.map(t=>new Date(t.logged_at).getTime());
+    const spanDays=Math.floor((Math.max(...dates)-Math.min(...dates))/(24*60*60*1000));
+    return{unlocked:coverage>=MAP_ARC_MIN_COVERAGE&&spanDays>=MAP_ARC_MIN_SPAN_DAYS,coverage,spanDays,met,total:stakeholders.length};
+  };
+
+  const mapTpDateRange=()=>{
+    if(touchpoints.length===0){const now=Date.now();return{start:now-30*24*60*60*1000,end:now};}
+    const dates=touchpoints.map(t=>new Date(t.logged_at).getTime());
+    const min=Math.min(...dates), max=Math.max(...dates);
+    return{start:min===max?min-7*24*60*60*1000:min,end:max};
+  };
+
+  const generateStakeholderArc=async(sid)=>{
+    setArcLoadingId(sid);
+    const s=stakeholders.find(x=>x.id===sid);
+    const tps=stakeholderTps(sid);
+    const timeline=tps.map(t=>`  ${new Date(t.logged_at).toLocaleDateString("en-GB")} · ${t.type} · sentiment_after: ${t.sentiment_after}${t.notes?"\n    notes: "+t.notes:""}`).join("\n");
+    const prompt=`Stakeholder: ${s.name} (${s.role}${s.department?", "+s.department:""}, ${s.quadrant})\nCurrent sentiment: ${s.sentiment}\nTouchpoint timeline (${tps.length} entries, oldest → newest):\n${timeline}\n\nWrite a 3-5 sentence "relationship arc": how it started, what shifted (with dates), where it stands now. Reference specific notes. Be concrete. Use **bold** for turning points.`;
+    const result=await callAI(prompt,"Expert stakeholder relationship analyst. Concrete, temporal, specific. No generic advice.",1200);
+    setArcTexts(prev=>({...prev,[sid]:result}));
+    setArcLoadingId(null);
   };
 
   const generateAnalysis=async()=>{
     setAnalysisLoading(true);setAnalysis("");
     const mode=analysisMode;
-    const summary=filtered.map(s=>`- ${s.name} (${s.role}${s.department?", "+s.department:""}): Influence=${s.influence}%, Interest=${s.interest}%, Sentiment=${s.sentiment}, Quadrant=${s.quadrant}${s.notes?", Notes: "+s.notes:""}`).join("\n");
-    const result=await callAI(`Stakeholders:\n${summary}\n\n${ANALYSIS_PROMPTS[mode]}`,"Expert stakeholder management consultant. Practical, specific, actionable. Short paragraphs.",2000);
+    let payload;
+    if(mode==="mapArc"){
+      payload=stakeholders.map(s=>{
+        const tps=stakeholderTps(s.id);
+        const arc=tps.slice(-8).map(t=>`  ${new Date(t.logged_at).toLocaleDateString("en-GB")} ${t.type} → ${t.sentiment_after}${t.notes?" ("+t.notes.slice(0,120)+")":""}`).join("\n");
+        return`- ${s.name} (${s.role}, ${s.quadrant}, sentiment: ${s.sentiment}, ${tps.length} touchpoints)\n${arc||"  no touchpoints logged"}`;
+      }).join("\n\n");
+    }else{
+      payload=filtered.map(s=>`- ${s.name} (${s.role}${s.department?", "+s.department:""}): Influence=${s.influence}%, Interest=${s.interest}%, Sentiment=${s.sentiment}, Quadrant=${s.quadrant}${s.notes?", Notes: "+s.notes:""}`).join("\n");
+    }
+    const result=await callAI(`Stakeholders:\n${payload}\n\n${ANALYSIS_PROMPTS[mode]}`,"Expert stakeholder management consultant. Practical, specific, actionable. Short paragraphs.",mode==="mapArc"?2500:2000);
     setAnalysis(result);setAnalysisLoading(false);
   };
 
@@ -701,29 +754,50 @@ Text:\n${importText}`;
       )}
 
       {/* ANALYSIS TAB */}
-      {tab==="analysis"&&(
+      {tab==="analysis"&&(()=>{
+        const modes=[{k:"strategy",l:"Strategy brief"},{k:"comms",l:"Comms plan"},{k:"risks",l:"Risk analysis"},{k:"mapArc",l:"Map arc"}];
+        const descriptions={strategy:"Engagement priorities, coalition opportunities, and 30-day quick wins.",comms:"Channel, frequency, and message framing per quadrant and stakeholder.",risks:"Blockers, silent resistors, dependency gaps, and mitigation actions.",mapArc:"Portfolio reflection on how each relationship has evolved through your logged touchpoints."};
+        const buttonLabels={strategy:"strategy brief",comms:"comms plan",risks:"risk analysis",mapArc:"map arc"};
+        const mArc=mapArcStatus();
+        const isMapArc=analysisMode==="mapArc";
+        return(
         <div className="card">
           <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:14}}>AI ANALYSIS</div>
           <div style={{display:"flex",gap:0,marginBottom:14,border:`1px solid ${C.hairline}`}}>
-            {[{k:"strategy",l:"Strategy brief"},{k:"comms",l:"Comms plan"},{k:"risks",l:"Risk analysis"}].map((m,i)=>(
-              <button key={m.k} onClick={()=>{setAnalysisMode(m.k);setAnalysis("");}} style={{flex:1,padding:"8px 12px",border:"none",borderRight:i<2?`1px solid ${C.hairline}`:"none",background:analysisMode===m.k?C.ink:C.bg,color:analysisMode===m.k?C.bg:C.ink2,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif"}}>{m.l}</button>
+            {modes.map((m,i)=>(
+              <button key={m.k} onClick={()=>{setAnalysisMode(m.k);setAnalysis("");}} style={{flex:1,padding:"8px 12px",border:"none",borderRight:i<modes.length-1?`1px solid ${C.hairline}`:"none",background:analysisMode===m.k?C.ink:C.bg,color:analysisMode===m.k?C.bg:C.ink2,fontSize:12,fontWeight:500,cursor:"pointer",fontFamily:"'Inter Tight',sans-serif"}}>{m.l}</button>
             ))}
           </div>
           <div className="mono" style={{fontSize:10,color:C.muted,marginBottom:14,padding:"8px 12px",background:C.surface,borderLeft:`2px solid ${C.hairline}`}}>
-            {analysisMode==="strategy"&&"Engagement priorities, coalition opportunities, and 30-day quick wins."}
-            {analysisMode==="comms"&&"Channel, frequency, and message framing per quadrant and stakeholder."}
-            {analysisMode==="risks"&&"Blockers, silent resistors, dependency gaps, and mitigation actions."}
+            {descriptions[analysisMode]}
           </div>
-          <button className="btn btn-fill btn-block" disabled={analysisLoading||filtered.length===0} style={{marginBottom:14}} onClick={generateAnalysis}>
-            {analysisLoading?"Analyzing...":"Generate "+{strategy:"strategy brief",comms:"comms plan",risks:"risk analysis"}[analysisMode]}
-          </button>
+          {isMapArc&&!mArc.unlocked?(
+            <div style={{padding:"20px 22px",background:C.bg,border:`1px solid ${C.hairline}`,marginBottom:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:12}}>
+                <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em"}}>MAP ARC</div>
+                <span className="mono" style={{fontSize:9,color:C.muted,letterSpacing:".06em"}}>LOCKED</span>
+              </div>
+              <p style={{fontSize:12,color:C.ink2,marginBottom:18,lineHeight:1.6}}>
+                Unlocks once <strong>{Math.round(MAP_ARC_MIN_COVERAGE*100)}%</strong> of stakeholders have at least <strong>{MAP_ARC_MIN_TP_PER} touchpoints</strong>, and the map holds <strong>{MAP_ARC_MIN_SPAN_DAYS} days</strong> of history. AI reads every relationship arc and reflects on the whole landscape.
+              </p>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+                <ArcProgressRail label="Coverage" value={mArc.coverage*100} total={MAP_ARC_MIN_COVERAGE*100} pctLabel={`${mArc.met} of ${mArc.total} (${Math.round(mArc.coverage*100)}%)`}/>
+                <ArcProgressRail label="History span" value={mArc.spanDays} total={MAP_ARC_MIN_SPAN_DAYS} pctLabel={`${mArc.spanDays} / ${MAP_ARC_MIN_SPAN_DAYS} days`}/>
+              </div>
+            </div>
+          ):(
+            <button className="btn btn-fill btn-block" disabled={analysisLoading||filtered.length===0} style={{marginBottom:14}} onClick={generateAnalysis}>
+              {analysisLoading?"Analyzing...":"Generate "+buttonLabels[analysisMode]}
+            </button>
+          )}
           {analysis&&(
             <div id="analysis-output" style={{padding:16,background:C.surface,border:`1px solid ${C.hairline}`,fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap",maxHeight:500,overflowY:"auto"}}
               dangerouslySetInnerHTML={{__html:analysis.replace(/\*\*(.*?)\*\*/g,`<strong style="color:${C.ink};font-weight:600">$1</strong>`)}}/>
           )}
           {filtered.length===0&&<div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:20}}>Add stakeholders first</div>}
         </div>
-      )}
+        );
+      })()}
 
       {/* MESSAGES TAB */}
       {tab==="messages"&&(
@@ -789,41 +863,127 @@ Text:\n${importText}`;
             </a>
           </div>
 
-          {/* Stakeholder list — log button per row */}
+          {/* Stakeholder list — sparkline + expand for history */}
           <div style={{border:`1px solid ${C.hairline}`,marginBottom:16}}>
-            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 100px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`}}>
-              {["Stakeholder","Quadrant","Last contact","Interactions",""].map(h=><div key={h} className="label" style={{margin:0}}>{h}</div>)}
+            <div style={{display:"grid",gridTemplateColumns:"28px 2.5fr 90px 1.6fr 100px",padding:"8px 16px",background:C.surface,borderBottom:`1px solid ${C.hairline}`,gap:12}}>
+              {["","Stakeholder","Quadrant","History",""].map((h,idx)=><div key={idx} className="label" style={{margin:0}}>{h}</div>)}
             </div>
             {stakeholders.length===0?(
               <div className="mono" style={{fontSize:11,color:C.muted,textAlign:"center",padding:24}}>Add stakeholders first</div>
-            ):stakeholders.map((s,i)=>{
-              // Find touchpoints for this stakeholder
-              const stps=touchpoints.filter(t=>t.stakeholder_id===s.id);
-              const last=stps[0];
-              const daysSince=last?Math.floor((Date.now()-new Date(last.logged_at))/(24*60*60*1000)):null;
-              const cadenceDays=s.quadrant==="Manage Closely"?7:s.quadrant==="Keep Satisfied"?14:30;
-              const status=daysSince===null?"never":daysSince>cadenceDays?"overdue":daysSince>cadenceDays-2?"due-soon":"on-track";
-              const statusColor={never:C.signal,overdue:C.signal,"due-soon":C.amber,"on-track":C.moss}[status];
-              return(
-                <div key={s.id} style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 100px",padding:"11px 16px",borderBottom:i<stakeholders.length-1?`1px solid ${C.hairline}`:"none",alignItems:"center",background:status==="overdue"||status==="never"?"rgba(214,50,31,0.03)":"transparent"}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:500}}>{s.name}</div>
-                    <div className="mono" style={{fontSize:10,color:C.muted}}>{s.role}</div>
+            ):(()=>{
+              const range=mapTpDateRange();
+              return stakeholders.map((s,i)=>{
+                const stps=stakeholderTps(s.id);
+                const last=stps[stps.length-1];
+                const daysSince=last?Math.floor((Date.now()-new Date(last.logged_at))/(24*60*60*1000)):null;
+                const cadenceDays=s.quadrant==="Manage Closely"?7:s.quadrant==="Keep Satisfied"?14:30;
+                const status=daysSince===null?"never":daysSince>cadenceDays?"overdue":daysSince>cadenceDays-2?"due-soon":"on-track";
+                const statusColor={never:C.signal,overdue:C.signal,"due-soon":C.amber,"on-track":C.moss}[status];
+                const statusLabel=status==="never"?"Never logged":status==="overdue"?"Overdue":status==="due-soon"?"Due soon":"On track";
+                const isExpanded=expandedStakeholderId===s.id;
+                const arc=arcStatus(s.id);
+                return(
+                  <div key={s.id} style={{borderBottom:i<stakeholders.length-1?`1px solid ${C.hairline}`:"none"}}>
+                    <div onClick={()=>setExpandedStakeholderId(isExpanded?null:s.id)}
+                      style={{display:"grid",gridTemplateColumns:"28px 2.5fr 90px 1.6fr 100px",padding:"11px 16px",alignItems:"center",gap:12,cursor:"pointer",background:isExpanded?C.surface:(status==="overdue"||status==="never"?"rgba(214,50,31,0.03)":"transparent"),transition:"background .1s"}}>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:C.muted,userSelect:"none",transform:isExpanded?"rotate(90deg)":"rotate(0)",transition:"transform .15s"}}>›</div>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:500}}>{s.name}</div>
+                        <div className="mono" style={{fontSize:10,color:C.muted}}>{s.role}</div>
+                      </div>
+                      <div><span className="badge" style={{borderColor:QUAD[s.quadrant].color,color:QUAD[s.quadrant].color,fontSize:9}}>{s.quadrant}</span></div>
+                      <div style={{minWidth:0}}>
+                        <TpSparkline tps={stps} dateStart={range.start} dateEnd={range.end}/>
+                        <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+                          <div style={{width:5,height:5,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
+                          <span className="mono" style={{fontSize:9,color:statusColor,textTransform:"uppercase",letterSpacing:".04em"}}>{statusLabel}</span>
+                          <span className="mono" style={{fontSize:9,color:C.muted,marginLeft:"auto"}}>{stps.length} logged{daysSince===null?"":" · "+daysSince+"d"}</span>
+                        </div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        <button className="btn btn-fill btn-xs" onClick={e=>{e.stopPropagation();setTpTarget(s);setTpForm({type:"meeting",notes:"",sentiment_after:s.sentiment||"neutral"});}}>Log +</button>
+                      </div>
+                    </div>
+                    {isExpanded&&(
+                      <div style={{padding:"18px 20px 22px",background:C.surface,borderTop:`1px solid ${C.hairline}`}}>
+                        {/* Big sparkline */}
+                        <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>TIMELINE</div>
+                        <div style={{padding:"12px 14px",background:C.bg,border:`1px solid ${C.hairline}`,marginBottom:16}}>
+                          <TpSparkline tps={stps} dateStart={range.start} dateEnd={range.end} height={36} dotSize={9} showAxisLabels={true}/>
+                          <div style={{display:"flex",gap:12,marginTop:12,flexWrap:"wrap"}}>
+                            {SENTIMENTS.map(k=>(
+                              <div key={k} style={{display:"flex",alignItems:"center",gap:4}}>
+                                <div style={{width:7,height:7,borderRadius:"50%",background:SENT_COLORS[k]}}/>
+                                <span className="mono" style={{fontSize:9,color:C.muted,textTransform:"uppercase",letterSpacing:".04em"}}>{k}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Chronological list */}
+                        <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".08em",marginBottom:10}}>ALL TOUCHPOINTS ({stps.length})</div>
+                        {stps.length===0?(
+                          <div className="mono" style={{fontSize:11,color:C.muted,padding:"14px 0"}}>No touchpoints logged yet. Click <strong>Log +</strong> to start the record.</div>
+                        ):(
+                          <div style={{border:`1px solid ${C.hairline}`,background:C.bg,marginBottom:16}}>
+                            {stps.slice().reverse().map((t,ti)=>(
+                              <div key={t.id} style={{display:"grid",gridTemplateColumns:"90px 90px 90px 1fr",gap:10,padding:"9px 14px",borderBottom:ti<stps.length-1?`1px solid ${C.hairline}`:"none",alignItems:"start"}}>
+                                <div className="mono" style={{fontSize:10,color:C.ink2}}>{new Date(t.logged_at).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"2-digit"})}</div>
+                                <div><span className="badge" style={{borderColor:C.hairline,color:C.muted,fontSize:9}}>{t.type}</span></div>
+                                <div style={{display:"flex",alignItems:"center",gap:5}}>
+                                  <div style={{width:6,height:6,borderRadius:"50%",background:SENT_COLORS[t.sentiment_after]||C.ink,flexShrink:0}}/>
+                                  <span className="mono" style={{fontSize:9,color:SENT_COLORS[t.sentiment_after]||C.muted,textTransform:"uppercase",letterSpacing:".04em"}}>{t.sentiment_after}</span>
+                                </div>
+                                <div style={{fontSize:12,color:t.notes?C.ink2:C.muted,fontStyle:t.notes?"normal":"italic",lineHeight:1.55}}>{t.notes||"No notes"}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Relationship arc card */}
+                        <div style={{padding:"16px 18px",background:C.bg,border:`1px solid ${arc.unlocked?C.ink:C.hairline}`}}>
+                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:12}}>
+                            <div className="mono" style={{fontSize:10,color:arc.unlocked?C.ink:C.muted,letterSpacing:".08em"}}>RELATIONSHIP ARC</div>
+                            {!arc.unlocked&&<span className="mono" style={{fontSize:9,color:C.muted,letterSpacing:".06em"}}>LOCKED</span>}
+                          </div>
+                          {arc.unlocked?(
+                            <div>
+                              <p style={{fontSize:12,color:C.ink2,marginBottom:14,lineHeight:1.6}}>
+                                {arc.count} touchpoints logged · notes on {arc.withNotes} of {arc.count}. Generate a short narrative of how this relationship has shifted.
+                              </p>
+                              {!arcTexts[s.id]&&(
+                                <button className="btn btn-fill btn-sm" onClick={()=>generateStakeholderArc(s.id)} disabled={arcLoadingId===s.id}>
+                                  {arcLoadingId===s.id?"Reading the arc...":"Generate relationship arc"}
+                                </button>
+                              )}
+                              {arcTexts[s.id]&&(
+                                <div>
+                                  <div style={{padding:14,background:C.surface,border:`1px solid ${C.hairline}`,fontSize:13,lineHeight:1.7,whiteSpace:"pre-wrap",marginBottom:10}}
+                                    dangerouslySetInnerHTML={{__html:arcTexts[s.id].replace(/\*\*(.*?)\*\*/g,`<strong style="color:${C.ink};font-weight:600">$1</strong>`)}}/>
+                                  <button className="btn btn-ghost btn-xs" onClick={()=>generateStakeholderArc(s.id)} disabled={arcLoadingId===s.id}>
+                                    {arcLoadingId===s.id?"Rewriting...":"Regenerate"}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ):(
+                            <div>
+                              <p style={{fontSize:12,color:C.ink2,marginBottom:14,lineHeight:1.6}}>
+                                Unlocks after <strong>{ARC_MIN_TP} touchpoints</strong> with notes filled on <strong>at least {Math.round(ARC_MIN_NOTES_PCT*100)}%</strong> of them. The AI reads the timeline and writes a short arc of how the relationship has evolved.
+                              </p>
+                              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+                                <ArcProgressRail label="Touchpoints" value={arc.count} total={ARC_MIN_TP} pctLabel={`${arc.count} / ${ARC_MIN_TP}`}/>
+                                <ArcProgressRail label="Notes filled" value={arc.pct*100} total={ARC_MIN_NOTES_PCT*100} pctLabel={`${arc.withNotes} of ${arc.count} (${Math.round(arc.pct*100)}%)`}/>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div><span className="badge" style={{borderColor:QUAD[s.quadrant].color,color:QUAD[s.quadrant].color,fontSize:9}}>{s.quadrant}</span></div>
-                  <div className="mono" style={{fontSize:11,color:C.ink2}}>{daysSince===null?"—":`${daysSince}d ago`}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:6,height:6,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
-                    <span className="mono" style={{fontSize:9,color:statusColor,textTransform:"uppercase",letterSpacing:".04em"}}>
-                      {status==="never"?"Never logged":status==="overdue"?"Overdue":status==="due-soon"?"Due soon":"On track"}
-                    </span>
-                  </div>
-                  <div style={{textAlign:"right"}}>
-                    <button className="btn btn-fill btn-xs" onClick={()=>{setTpTarget(s);setTpForm({type:"meeting",notes:"",sentiment_after:s.sentiment||"neutral"});}}>Log +</button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
 
           {/* Recent log */}
@@ -946,6 +1106,48 @@ Text:\n${importText}`;
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TpSparkline({tps,dateStart,dateEnd,height=24,dotSize=5,showAxisLabels=false}){
+  if(!tps||tps.length===0)return<div className="mono" style={{fontSize:9,color:C.muted,fontStyle:"italic",lineHeight:height+"px"}}>no history yet</div>;
+  const span=Math.max(1,dateEnd-dateStart);
+  const dots=tps.map((t,i)=>{
+    const x=((new Date(t.logged_at).getTime()-dateStart)/span)*100;
+    return{x:Math.min(100,Math.max(0,x)),color:SENT_COLORS[t.sentiment_after]||C.ink,tp:t,i};
+  });
+  return(
+    <div style={{position:"relative",width:"100%",height,paddingBottom:showAxisLabels?14:0}}>
+      <div style={{position:"relative",width:"100%",height}}>
+        <div style={{position:"absolute",left:0,right:0,top:"50%",height:1,background:C.hairline}}/>
+        {dots.map(d=>(
+          <div key={d.i} title={`${new Date(d.tp.logged_at).toLocaleDateString("en-GB")} · ${d.tp.type} · ${d.tp.sentiment_after}${d.tp.notes?" — "+d.tp.notes.slice(0,80):""}`}
+            style={{position:"absolute",left:`calc(${d.x}% - ${dotSize/2}px)`,top:`calc(50% - ${dotSize/2}px)`,width:dotSize,height:dotSize,borderRadius:"50%",background:d.color,border:`1px solid ${C.bg}`,cursor:"pointer",transition:"transform .12s"}}
+            onMouseEnter={e=>e.currentTarget.style.transform="scale(1.6)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}/>
+        ))}
+      </div>
+      {showAxisLabels&&(
+        <div className="mono" style={{display:"flex",justifyContent:"space-between",fontSize:9,color:C.muted,letterSpacing:".04em",marginTop:4}}>
+          <span>{new Date(dateStart).toLocaleDateString("en-GB",{month:"short",day:"numeric"})}</span>
+          <span>{new Date(dateEnd).toLocaleDateString("en-GB",{month:"short",day:"numeric"})}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ArcProgressRail({label,value,total,pctLabel}){
+  const pct=Math.min(100,total>0?(value/total)*100:0);
+  return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:4}}>
+        <span className="label" style={{margin:0}}>{label}</span>
+        <span className="mono" style={{fontSize:11,color:C.ink,fontWeight:500}}>{pctLabel}</span>
+      </div>
+      <div style={{position:"relative",height:3,background:C.hairline}}>
+        <div style={{position:"absolute",left:0,top:0,bottom:0,width:pct+"%",background:C.ink,transition:"width .3s"}}/>
+      </div>
     </div>
   );
 }
