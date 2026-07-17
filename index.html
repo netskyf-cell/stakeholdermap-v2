@@ -567,12 +567,16 @@ Text:\n${importText}`;
 
   return(
     <div className="container" style={{padding:"16px 24px 60px"}}>
-      {/* Nudge strip */}
+      {/* Nudge strip — collapsed summary */}
       {nudges.length>0&&(
         <div style={{marginBottom:12}}>
-          {nudges.map(n=>(
-            <div key={n.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:C.amberG,border:`1px solid ${C.amber}`,marginBottom:4}}>
-              <span style={{color:C.amber,fontSize:14,flexShrink:0}}>!</span>
+          <div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",background:C.amberG,border:`1px solid ${C.amber}`,cursor:"pointer"}} onClick={()=>setExpandedStakeholderId(expandedStakeholderId==="__nudges__"?null:"__nudges__")}>
+            <span style={{color:C.amber,fontSize:14,flexShrink:0}}>!</span>
+            <span className="mono" style={{fontSize:11,color:C.ink,flex:1}}>{nudges.length} stakeholder{nudges.length!==1?"s need":" needs"} contact</span>
+            <span className="mono" style={{fontSize:10,color:C.amber}}>{expandedStakeholderId==="__nudges__"?"Collapse":"Expand"}</span>
+          </div>
+          {expandedStakeholderId==="__nudges__"&&nudges.map(n=>(
+            <div key={n.id} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 14px 8px 38px",background:C.bg,borderLeft:`1px solid ${C.amber}`,borderRight:`1px solid ${C.amber}`,borderBottom:`1px solid ${C.hairline}`}}>
               <span className="mono" style={{fontSize:11,color:C.ink,flex:1}}>{n.message}</span>
               <button className="btn btn-ghost btn-xs" style={{borderColor:C.amber,color:C.amber,flexShrink:0}} onClick={()=>{setTpTarget(n.stakeholder);setTpForm({type:"meeting",notes:"",sentiment_after:n.stakeholder.sentiment||"neutral"});}}>Log touchpoint</button>
               <button className="btn btn-ghost btn-xs" style={{flexShrink:0}} onClick={()=>dismissNudge(n.id)}>Dismiss</button>
@@ -603,9 +607,9 @@ Text:\n${importText}`;
         </div>
       )}
 
-      {/* Header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${C.hairline}`}}>
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+      {/* Header — two rows: title+actions, then initiative */}
+      <div style={{marginBottom:16,paddingBottom:12,borderBottom:`1px solid ${C.hairline}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button className="btn btn-ghost btn-sm" onClick={()=>go("/dashboard")}>← Back</button>
             <span className="badge" style={{borderColor:C.hairline,color:C.muted}}>{mt.code}</span>
@@ -620,40 +624,40 @@ Text:\n${importText}`;
               onFocus={e=>e.target.style.borderBottomColor=C.ink}
             />
             {saving&&<span className="mono" style={{fontSize:10,color:C.muted}}>Saving...</span>}
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setShowThresholds(v=>!v)}>Thresholds</button>
+            <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
+          </div>
         </div>
-        <div style={{paddingLeft:2,marginTop:2}}>
+        <div style={{display:"flex",alignItems:"center",gap:16,paddingLeft:2}}>
           <input
             value={mapDescription}
             onChange={e=>setMapDescription(e.target.value)}
             onBlur={()=>saveMapMeta("description",mapDescription)}
             onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape"){setMapDescription(map.description||"");e.target.blur();}}}
             placeholder="Add a description..."
-            style={{fontSize:12,color:C.ink2,border:"none",borderBottom:`1px solid transparent`,background:"transparent",fontFamily:"'Inter Tight',sans-serif",outline:"none",padding:"0 2px",width:340,cursor:"text"}}
+            style={{fontSize:12,color:C.ink2,border:"none",borderBottom:`1px solid transparent`,background:"transparent",fontFamily:"'Inter Tight',sans-serif",outline:"none",padding:"0 2px",width:280,cursor:"text"}}
             onMouseEnter={e=>e.target.style.borderBottomColor=C.hairline}
             onMouseLeave={e=>e.target.style.borderBottomColor="transparent"}
             onFocus={e=>e.target.style.borderBottomColor=C.ink}
           />
-        </div>
-  <div style={{display:"flex",alignItems:"center",gap:8,paddingLeft:2}}>
-    <span className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em"}}>INITIATIVE</span>
-    <select
-      className="inp"
-      value={linkedInitiativeId||""}
-      onChange={e=>linkInitiative(e.target.value||null)}
-      style={{width:"auto",minWidth:200,fontSize:12,padding:"4px 8px",border:`1px solid ${linkedInitiativeId?C.ink:C.hairline}`,color:linkedInitiativeId?C.ink:C.muted,background:linkedInitiativeId?C.surface:C.bg}}>
-      <option value="">— Not linked to an initiative —</option>
-      {initiatives.map(i=>(
-        <option key={i.id} value={i.id}>{i.name}{i.status&&i.status!=="active"?" ("+i.status+")":""}</option>
-      ))}
-    </select>
-    {linkedInitiativeId&&(
-      <a href="https://transformation-os-mauve.vercel.app/#/initiatives" target="_blank" className="mono" style={{fontSize:10,color:C.muted,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color=C.ink} onMouseLeave={e=>e.target.style.color=C.muted}>View in TOS ↗</a>
-    )}
-  </div>
-</div>
-        <div style={{display:"flex",gap:8}}>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setShowThresholds(v=>!v)}>Thresholds</button>
-          <button className="btn btn-fill btn-sm" onClick={()=>{setEditing(null);setShowForm(true)}}>+ Add stakeholder</button>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em"}}>INITIATIVE</span>
+            <select
+              className="inp"
+              value={linkedInitiativeId||""}
+              onChange={e=>linkInitiative(e.target.value||null)}
+              style={{width:"auto",minWidth:200,fontSize:12,padding:"4px 8px",border:`1px solid ${linkedInitiativeId?C.ink:C.hairline}`,color:linkedInitiativeId?C.ink:C.muted,background:linkedInitiativeId?C.surface:C.bg}}>
+              <option value="">— Not linked to an initiative —</option>
+              {initiatives.map(i=>(
+                <option key={i.id} value={i.id}>{i.name}{i.status&&i.status!=="active"?" ("+i.status+")":""}</option>
+              ))}
+            </select>
+            {linkedInitiativeId&&(
+              <a href="https://transformation-os-mauve.vercel.app/#/initiatives" target="_blank" className="mono" style={{fontSize:10,color:C.muted,textDecoration:"none"}} onMouseEnter={e=>e.target.style.color=C.ink} onMouseLeave={e=>e.target.style.color=C.muted}>View in TOS ↗</a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -690,7 +694,7 @@ Text:\n${importText}`;
         <div style={{display:"grid",gridTemplateColumns:stakeholders.length>0?"1fr 300px":"1fr",gap:1,border:`1px solid ${C.hairline}`}}>
           <div style={{padding:20}}>
             <div className="mono" style={{fontSize:10,color:C.muted,letterSpacing:".06em",marginBottom:12}}>INFLUENCE / INTEREST MATRIX</div>
-            <div style={{position:"relative",width:"100%",aspectRatio:"1.5/1",background:C.surface,overflow:"hidden"}}>
+            <div style={{position:"relative",width:"100%",minHeight:420,aspectRatio:"1.2/1",background:C.surface,overflow:"hidden"}}>
               <div style={{position:"absolute",left:"50%",top:0,bottom:0,width:1,background:C.hairline}}/>
               <div style={{position:"absolute",top:"50%",left:0,right:0,height:1,background:C.hairline}}/>
               {[{l:"Keep Satisfied",x:"25%",y:"22%"},{l:"Manage Closely",x:"75%",y:"22%"},{l:"Monitor",x:"25%",y:"78%"},{l:"Keep Informed",x:"75%",y:"78%"}].map(q=>(
@@ -726,11 +730,11 @@ Text:\n${importText}`;
                   <button className="btn btn-ghost btn-xs" onClick={()=>setFilter(null)}>Clear</button>
                 </div>
               )}
-              <div style={{maxHeight:480,overflowY:"auto"}}>
+              <div style={{maxHeight:520,overflowY:"auto"}}>
                 {filtered.map((s,i)=>{
                   const q=QUAD[s.quadrant];
                   return(
-                    <div key={s.id} onClick={()=>setSelected(s.id)} style={{padding:"12px 14px",borderBottom:i<filtered.length-1?`1px solid ${C.hairline}`:"none",cursor:"pointer",background:selected===s.id?C.surface:"transparent",transition:"background .1s"}}>
+                    <div key={s.id} onClick={()=>setSelected(s.id)} style={{padding:"16px 14px",borderBottom:`1px solid ${C.hairline}`,cursor:"pointer",background:selected===s.id?C.surface:"transparent",transition:"background .1s"}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                         <div><div style={{fontSize:13,fontWeight:500,marginBottom:2}}>{s.name}</div><div className="mono" style={{fontSize:10,color:C.muted}}>{s.role}{s.department?" · "+s.department:""}</div></div>
                         <div style={{display:"flex",gap:4}}>
